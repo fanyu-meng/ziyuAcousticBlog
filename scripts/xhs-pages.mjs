@@ -2,10 +2,10 @@
 // 把个人网站上的声学科普文章排成小红书图页（1200 × 1600，封面 + 有序正文页）。
 //
 // 用法：
-//   node scripts/xhs-pages.mjs --site ../fanyu-meng.github.io [--meta <目录>] [--qr <json>] [--out articles] <作品ID>...
+//   node scripts/xhs-pages.mjs --site ../fanyu-meng.github.io [--out articles] <作品ID>...
 //
 // --site  个人网站仓库（读取 public/content/acoustics-index.json 和文章 JSON）
-// --meta  可选。每篇一个 <作品ID>.json，含 title、label、summary、tags
+// 页脚短语取自作品目录的 小红书页脚.txt，封面导语取自 小红书摘要.txt 的第一段。
 // 含二维码的图片和图片里印着的网址，按同目录的 xhs-masks.json 去除或遮盖。
 // --out   输出目录，默认 articles。每篇写入 <out>/<作品ID>/小红书图页/
 //
@@ -265,6 +265,10 @@ async function render(browser, id) {
   let meta = {};
   if (opt.meta && fs.existsSync(path.join(opt.meta, id + '.json')))
     meta = JSON.parse(fs.readFileSync(path.join(opt.meta, id + '.json'), 'utf8'));
+  // 没给 --meta 时，用作品目录里的页脚短语和摘要
+  const own = f => { const q = path.join(opt.out, id, f); return fs.existsSync(q) ? fs.readFileSync(q, 'utf8').trim() : ''; };
+  meta.label ||= own('小红书页脚.txt');
+  meta.summary ||= own('小红书摘要.txt').split(/\n\s*\n/)[0];
   const label = meta.label || item.title;
 
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
