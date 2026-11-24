@@ -6,8 +6,7 @@
 //
 // --site  个人网站仓库（读取 public/content/acoustics-index.json 和文章 JSON）
 // --meta  可选。每篇一个 <作品ID>.json，含 title、label、summary、tags
-// --qr    可选。JSON 数组，列出含二维码的图片文件名，排版时去除
-// --override 可选。目录里有同名文件时，用它替换原图（用来放遮掉网址的副本）
+// 含二维码的图片和图片里印着的网址，按同目录的 xhs-masks.json 去除或遮盖。
 // --out   输出目录，默认 articles。每篇写入 <out>/<作品ID>/小红书图页/
 //
 // 一条笔记最多 18 张图。正文超过 17 页时自动拆成几条，每条各有封面。
@@ -33,7 +32,7 @@ if (!opt.site || !opt.ids.length) {
 }
 const pub = path.resolve(opt.site, 'public');
 const index = JSON.parse(fs.readFileSync(path.join(pub, 'content/acoustics-index.json'), 'utf8'));
-const qr = new Set(opt.qr ? JSON.parse(fs.readFileSync(opt.qr, 'utf8')) : []);
+const MASKS = JSON.parse(fs.readFileSync(new URL('./xhs-masks.json', import.meta.url), 'utf8'));
 
 const CSS = `
 *{box-sizing:border-box}
@@ -92,7 +91,7 @@ function shell(html) {
 }
 
 // 在页面里整理正文：去站外地址、二维码、空段，区分行内图与独立图，返回可作封面的首图。
-function tidy({ qrNames, FLOW_W, FLOW_H }) {
+function tidy({ qrNames, masks, FLOW_W, FLOW_H }) {
   const flow = document.getElementById('flow');
   const URL_RE = /(https?:\/\/|www\.)[^\s，。；、）)】」』<>"']+/gi;
   const DOMAIN_RE = /(?<![\w@.-])(?:[a-z0-9-]+\.)+(?:com|org|net|cn|de|io|edu|gov|uk|fr|info|tv|me|cc|ai|eu|ch|nl|jp)(?:\/[^\s，。；、）)】」』]*)?(?![\w-])/gi;
@@ -204,6 +203,22 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
     img.style.height = img.dataset.h + 'px';
   }
 
+  // 图里印着网址的地方盖上色块
+  for (const img of flow.querySelectorAll('img')) {
+    const boxes = masks[(img.getAttribute('src') || '').split('/').pop()];
+    if (!boxes) continue;
+    const wrap = document.createElement('span');
+    wrap.style.cssText = `position:relative;display:${img.classList.contains('blk') ? 'block' : 'inline-block'};width:${img.style.width};margin:0 auto;break-inside:avoid`;
+    img.replaceWith(wrap);
+    img.dataset.masked = '1';
+    wrap.append(img);
+    for (const [l, t, w, h, c] of boxes) {
+      const d = document.createElement('i');
+      d.style.cssText = `position:absolute;left:${l}%;top:${t}%;width:${w}%;height:${h}%;background:${c}`;
+      wrap.append(d);
+    }
+  }
+
   // 封面首图：正文开头（署名等短段之后）紧跟的一张大图
   let lead = null;
   const first = [...flow.querySelectorAll('p,figure,h2,h3,h4,ul,ol,blockquote,table,img.blk')]
@@ -212,7 +227,7 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
     const img = e.matches('img.blk') ? e : e.querySelector('img.blk');
     if (img) {
       const r = img.naturalWidth / img.naturalHeight;
-      if (img.naturalWidth >= 480 && r > 0.6 && r < 2.6 && !/\.gif$/i.test(img.src)) {
+      if (img.naturalWidth >= 480 && r > 0.6 && r < 2.6 && !/\.gif$/i.test(img.src) && !img.dataset.masked) {
         lead = { src: img.src, nw: img.naturalWidth, nh: img.naturalHeight };
         const holder = e.matches('img.blk') ? img : (e.textContent.trim() ? img : e);
         holder.remove();
@@ -233,6 +248,7 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
     if (room < h && room >= Math.max(300, h * 0.5)) k = room / h;
     img.style.width = Math.floor(w * k) + 'px';
     img.style.height = Math.floor(h * k) + 'px';
+    if (img.dataset.masked) img.parentElement.style.width = img.style.width;
   }
 
   const para = [...flow.querySelectorAll('p')].find(p => !p.classList.contains('ph') && !p.closest('blockquote') && p.textContent.trim().length >= 30);
@@ -246,9 +262,6 @@ async function render(browser, id) {
   if (!item) throw new Error('索引里没有 ' + id);
   let { html } = JSON.parse(fs.readFileSync(path.join(pub, item.contentPath), 'utf8'));
   html = html.replace(/(src=")\/content\//g, `$1file://${pub}/content/`);
-  // 图片里印着网址的，改用遮盖后的副本
-  if (opt.override) html = html.replace(/src="file:\/\/[^"]*\/([^"\/]+)"/g, (m, name) =>
-    fs.existsSync(path.join(opt.override, name)) ? `src="file://${path.resolve(opt.override, name)}"` : m);
   let meta = {};
   if (opt.meta && fs.existsSync(path.join(opt.meta, id + '.json')))
     meta = JSON.parse(fs.readFileSync(path.join(opt.meta, id + '.json'), 'utf8'));
@@ -258,7 +271,7 @@ async function render(browser, id) {
   await page.goto('file://' + pub + '/content/acoustics-index.json'); // 取得 file:// 源，才能读本地图片
   await page.setContent(shell(html), { waitUntil: 'load' });
   await page.evaluate(() => Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; }))));
-  const info = await page.evaluate(tidy, { qrNames: [...qr], FLOW_W, FLOW_H });
+  const info = await page.evaluate(tidy, { qrNames: MASKS.remove, masks: MASKS.mask, FLOW_W, FLOW_H });
   await page.evaluate(() => document.fonts.ready);
 
   const pages = await page.evaluate(({ W }) => {
