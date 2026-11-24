@@ -7,6 +7,7 @@
 // --site  个人网站仓库（读取 public/content/acoustics-index.json 和文章 JSON）
 // --meta  可选。每篇一个 <作品ID>.json，含 title、label、summary、tags
 // --qr    可选。JSON 数组，列出含二维码的图片文件名，排版时去除
+// --override 可选。目录里有同名文件时，用它替换原图（用来放遮掉网址的副本）
 // --out   输出目录，默认 articles。每篇写入 <out>/<作品ID>/小红书图页/
 //
 // 一条笔记最多 18 张图。正文超过 17 页时自动拆成几条，每条各有封面。
@@ -38,7 +39,7 @@ const CSS = `
 *{box-sizing:border-box}
 html,body{margin:0;background:#f5f4ef}
 body{width:${W}px;height:${H}px;overflow:hidden;position:relative;color:#1f3238;
-  font-family:"Noto Sans CJK SC",sans-serif;font-size:42px;line-height:${LINE}px;
+  font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:42px;line-height:${LINE}px;
   text-align:left;word-break:break-word;overflow-wrap:anywhere;line-break:strict}
 #brand{position:absolute;left:${SIDE}px;top:62px;font-size:31px;line-height:38px;color:#1b6b7c;
   border-left:7px solid #1b6b7c;padding-left:18px;letter-spacing:2px}
@@ -52,7 +53,7 @@ body{width:${W}px;height:${H}px;overflow:hidden;position:relative;color:#1f3238;
   orphans:2;widows:2}
 #flow p,#flow ul,#flow ol,#flow blockquote,#flow table,#flow figure{margin:0 0 ${LINE / 2}px}
 #flow div{margin:0}
-#flow h2,#flow h3,#flow h4,#flow .ph{font-family:"Noto Serif CJK SC",serif;font-weight:700;color:#1c2f35;
+#flow h2,#flow h3,#flow h4,#flow .ph{font-family:"Noto Serif CJK SC","Songti SC","SimSun",serif;font-weight:700;color:#1c2f35;
   break-after:avoid;break-inside:avoid;margin:${LINE / 4}px 0 ${LINE / 4}px}
 #flow h2{font-size:60px;line-height:${LINE * 1.5}px}
 #flow h3{font-size:52px;line-height:${LINE * 1.25}px}
@@ -74,7 +75,7 @@ body{width:${W}px;height:${H}px;overflow:hidden;position:relative;color:#1f3238;
 #flow tr{break-inside:avoid}
 #flow math{font-size:1em}
 #cover{position:absolute;left:${SIDE}px;top:${TOP}px;width:${FLOW_W}px;height:${FLOW_H}px;display:none;overflow:hidden}
-#cover h1{font-family:"Noto Serif CJK SC",serif;font-weight:700;color:#1c2f35;margin:0 0 28px;letter-spacing:1px}
+#cover h1{font-family:"Noto Serif CJK SC","Songti SC","SimSun",serif;font-weight:700;color:#1c2f35;margin:0 0 28px;letter-spacing:1px}
 #cover .sub{font-size:31px;line-height:44px;color:#1b6b7c;margin:0 0 40px}
 #cover .lead{font-size:40px;line-height:66px;color:#42595f;border-left:7px solid #a9bfc4;padding-left:30px;
   display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
@@ -97,6 +98,24 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
   const DOMAIN_RE = /(?<![\w@.-])(?:[a-z0-9-]+\.)+(?:com|org|net|cn|de|io|edu|gov|uk|fr|info|tv|me|cc|ai|eu|ch|nl|jp)(?:\/[^\s，。；、）)】」』]*)?(?![\w-])/gi;
   const isUrl = s => /^\s*((https?:\/\/|www\.)\S+|(?:[a-z0-9-]+\.)+[a-z]{2,6}(\/\S*)?)\s*$/i.test(s);
 
+  // 小红书不能出现网址。参考资料里只有网址的条目，改写成「站名：页面题名」，免得条目变空。
+  const SITES = { wikipedia: '维基百科', youtube: 'YouTube 视频', youtu: 'YouTube 视频', bilibili: '哔哩哔哩视频', doi: 'DOI', researchgate: 'ResearchGate', arxiv: 'arXiv', github: 'GitHub' };
+  const cite = raw => {
+    let u;
+    try { u = new URL(/^https?:/i.test(raw) ? raw : 'http://' + raw); } catch { return ''; }
+    const labels = u.hostname.replace(/^www\./, '').split('.');
+    const two = /^(co|ac|com|org|edu|gov)$/.test(labels[labels.length - 2]) ? 3 : 2;
+    const key = (labels[labels.length - two] || labels[0]).toLowerCase();
+    if (/^(weixin|qq|zhihu|weibo|douyin|xiaohongshu)$/.test(key)) return '';
+    const name = SITES[key] || key.charAt(0).toUpperCase() + key.slice(1);
+    if (key === 'doi') return 'DOI ' + u.pathname.slice(1);
+    const segs = u.pathname.split('/').filter(Boolean).map(x => { try { return decodeURIComponent(x); } catch { return x; } });
+    let slug = (segs.reverse().find(x => /[a-zA-Z\u4e00-\u9fff]{4,}/.test(x) && !/^(index|watch|html?|figures|article|articles|post|posts|news|en|pdf)$/i.test(x)) || '')
+      .replace(/\.(html?|php|aspx?|pdf)$/i, '').replace(/[-_+]+/g, ' ').trim();
+    if (slug.length > 90) slug = slug.slice(0, 90) + '…';
+    return slug ? `${name}：${slug}` : `${name} 网站`;
+  };
+
   flow.querySelectorAll('audio,video,iframe,script,style,hr').forEach(e => e.remove());
   flow.querySelectorAll('img').forEach(img => {
     const name = (img.getAttribute('src') || '').split('/').pop();
@@ -104,7 +123,7 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
   });
   flow.querySelectorAll('a').forEach(a => {
     const t = a.textContent;
-    if (isUrl(t)) a.remove();
+    if (isUrl(t)) a.replaceWith(cite(a.getAttribute('href') || t.trim()));
     else a.replaceWith(...a.childNodes);
   });
   const walker = document.createTreeWalker(flow, NodeFilter.SHOW_TEXT);
@@ -112,7 +131,7 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
   while (walker.nextNode()) texts.push(walker.currentNode);
   for (const n of texts) {
     if (n.parentElement.closest('math')) continue;
-    const v = n.nodeValue.replace(URL_RE, '').replace(DOMAIN_RE, '').replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
+    const v = n.nodeValue.replace(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g, '').replace(URL_RE, m => cite(m)).replace(DOMAIN_RE, m => cite(m)).replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
     if (v !== n.nodeValue) n.nodeValue = v;
   }
   // 去掉地址后只剩「链接」二字的条目，以及过长的标题（按正文加粗处理）
@@ -126,7 +145,7 @@ function tidy({ qrNames, FLOW_W, FLOW_H }) {
     h.replaceWith(p);
   });
   // 站外引流的短句
-  const PROMO = /(阅读原文|长按.{0,8}(二维码|识别|关注)|扫.{0,6}(二维码|码关注)|点击.{0,10}(链接|蓝字|关注)|关注.{0,6}公众号|微信号|点个?在看|星标)/;
+  const PROMO = /(阅读原文|长按.{0,8}(二维码|识别|关注)|扫.{0,6}(二维码|码关注)|点击.{0,10}(链接|蓝字|关注)|关注.{0,6}公众号|公众号.{0,8}留言|微信号|点个?在看|星标)/;
   flow.querySelectorAll('p,li').forEach(e => {
     const t = e.textContent.trim();
     if (t.length < 60 && PROMO.test(t) && !e.querySelector('img')) e.remove();
@@ -227,6 +246,9 @@ async function render(browser, id) {
   if (!item) throw new Error('索引里没有 ' + id);
   let { html } = JSON.parse(fs.readFileSync(path.join(pub, item.contentPath), 'utf8'));
   html = html.replace(/(src=")\/content\//g, `$1file://${pub}/content/`);
+  // 图片里印着网址的，改用遮盖后的副本
+  if (opt.override) html = html.replace(/src="file:\/\/[^"]*\/([^"\/]+)"/g, (m, name) =>
+    fs.existsSync(path.join(opt.override, name)) ? `src="file://${path.resolve(opt.override, name)}"` : m);
   let meta = {};
   if (opt.meta && fs.existsSync(path.join(opt.meta, id + '.json')))
     meta = JSON.parse(fs.readFileSync(path.join(opt.meta, id + '.json'), 'utf8'));
