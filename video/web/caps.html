@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/900.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/anton/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/zcool-qingke-huangyou/400.css">
+<link rel="stylesheet" href="widgets.css">
+<style>
+/* Style B：大字幕快剪风 —— 亮色、粗描边卡片、逐词弹出的大字幕 */
+:root{--c-bg:#fff;--c-fg:#111;--c-dim:#676767;--c-line:#111;--c-grid:#e4e4e4;--c-440:#2463ff;--c-432:#ff7a1a;--c-acc:#ff2e63;--c-bad:#e3002b;
+  --c-card:#fff;--c-tag:#fff1f5;--c-bar:#c9c9c9;--c-thumb:#f1f1f1;--kb-w:#fff;--kb-b:#111;--kb-edge:#111;--c-dot:#c6c6c6;
+  --font:"Noto Sans SC","Noto Sans CJK SC",sans-serif;--font-num:"Space Grotesk","Noto Sans SC",sans-serif;--paper:#fff4d6;--yel:#ffe600}
+html,body{margin:0;background:var(--paper)}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;font-family:var(--font);color:#111;background:var(--paper);
+  background-image:radial-gradient(rgba(0,0,0,.11) 2px,transparent 2.4px);background-size:36px 36px}
+#hdr{position:absolute;left:44px;top:40px;height:88px;padding:0 34px;border-radius:50px;background:#111;color:var(--yel);display:flex;align-items:center;gap:18px;font-family:"Anton","Noto Sans SC";font-size:50px;letter-spacing:3px;white-space:nowrap;box-shadow:7px 7px 0 var(--c-432)}
+#hdr i{font-style:normal;color:#fff;font-size:.8em}
+#brand{position:absolute;right:48px;top:66px;font-size:28px;font-weight:900;letter-spacing:3px}
+#segs{position:absolute;left:44px;right:44px;top:150px;height:40px;display:flex;gap:8px}
+.seg{position:relative;height:12px;border:3px solid #111;border-radius:8px;background:#fff;overflow:hidden}
+.seg b{position:absolute;left:0;top:0;bottom:0;background:#111}
+.seg.on b{background:var(--c-acc)}
+.segl{position:absolute;top:20px;font-size:20px;font-weight:700;color:#555;white-space:nowrap}
+.segl.on{color:#111}
+#layer{position:absolute;inset:0}
+.scene{position:absolute;left:54px;top:226px;width:972px;height:770px}
+.card{position:absolute;inset:0;background:#fff;border:6px solid #111;border-radius:30px;box-shadow:14px 14px 0 #111;display:flex;flex-direction:column;justify-content:center;padding:66px 34px 20px;transform-origin:50% 60%}
+.tagl{position:absolute;left:26px;top:-36px;z-index:3;background:#111;color:var(--yel);font-size:34px;font-weight:900;padding:8px 22px;border-radius:12px;transform:rotate(-3deg);box-shadow:5px 5px 0 var(--c-acc);white-space:nowrap}
+.tagl small{font-family:var(--font-num);font-size:.8em;margin-right:10px;color:#fff}
+#emoji{position:absolute;right:54px;top:940px;font-size:120px;line-height:1;z-index:4;transform-origin:50% 80%;font-family:"Noto Color Emoji"}
+#foot{position:absolute;left:0;right:0;bottom:34px;text-align:center;font-size:24px;font-weight:700;color:#7a6a3a;letter-spacing:2px}
+/* captions */
+#cap{position:absolute;left:36px;right:36px;top:1030px;height:330px;display:flex;flex-wrap:wrap;align-items:center;align-content:center;justify-content:center;font-size:98px;line-height:1.22;font-weight:900;text-align:center;transform-origin:50% 50%}
+#cap .w{display:inline-block;white-space:pre;opacity:calc(var(--k)*1.4);transform:scale(calc(.45 + .55*var(--k)));transform-origin:50% 85%}
+#cap .w b{font-weight:900;position:relative;padding:0 4px;border-radius:10px}
+#cap .w i{font-style:normal}
+#cap .w.cur b{background:var(--yel);box-shadow:0 0 0 6px var(--yel)}
+#cap .w.hl b{color:var(--c-acc)}
+#cap .w.hl.cur b{background:#111;box-shadow:0 0 0 6px #111;color:var(--yel)}
+/* component skin */
+.wg-svg .bar{stroke:#111;stroke-width:3}.wg-svg .ex-dot{stroke:#111;stroke-width:1.5}.wg-svg .kb-hi-a,.wg-svg .kb-hi-c{stroke:#111;stroke-width:2}
+.wg-svg .tl-dot{stroke:#111;stroke-width:4}.wg-svg .ex-tag{stroke:#111;stroke-width:3;fill:var(--yel)}.wg-svg .t-acc{fill:#111}
+.wv{stroke-width:5}.wv.live{stroke-width:8}
+.lg{font-size:30px;height:700px}
+.lg-search{border:5px solid #111;box-shadow:6px 6px 0 #111}
+.lg-row{border:3px solid #111;background:#fff}
+.lg-thumb{background:var(--yel);color:#111;border:3px solid #111}
+.lg-chips{top:566px}
+.lg-chip{border:4px solid #111;background:var(--yel);color:#111;box-shadow:5px 5px 0 #111}
+.lg-quote .lg-cn{font-size:1.24em}.lg-quote .lg-en{font-size:.7em}
+.lg-quote{top:118px;border:4px solid #111;border-left-width:14px;box-shadow:7px 7px 0 #111;border-radius:14px}
+.lg-quote.nazi .lg-cn em{color:var(--c-bad);background:#ffe9ee}
+.lg-caret{background:#111}
+.ab{font-size:32px}
+.ab-card{border:5px solid #111;box-shadow:6px 6px 0 #111;border-radius:18px}
+.ab-card.play{border-color:#111;background:#fffbe0;transform:translate(-2px,-2px)}
+.ab.blind .ab-card.play .ab-bars i{background:#111}
+.ab-bars i{background:#bbb;opacity:1}
+.ab-video{border:5px solid #111;border-radius:18px;box-shadow:6px 6px 0 #111;width:84%;margin-left:auto;margin-right:auto}
+.ab-vtag{background:#111;color:var(--yel);padding:4px 14px;border-radius:8px;text-shadow:none;left:.5em;top:.5em}
+.ab-q{color:#111 !important}
+.src{font-size:22px}
+/* hook */
+.hk{position:absolute;inset:0}
+.blk{position:absolute;font-family:"Anton","Space Grotesk";font-size:230px;line-height:1;color:#fff;padding:18px 40px 26px;border:8px solid #111;border-radius:26px;box-shadow:14px 14px 0 #111;-webkit-text-stroke:5px #111;paint-order:stroke fill;white-space:nowrap}
+.blk small{font-size:86px;margin-left:10px}
+.b432{left:6px;top:20px;background:var(--c-432)}
+.b440{right:6px;top:300px;background:var(--c-440)}
+.hvs{position:absolute;left:412px;top:232px;width:130px;height:130px;border-radius:50%;background:#111;color:var(--yel);font-family:"Anton";font-size:64px;display:flex;align-items:center;justify-content:center;border:6px solid #fff;box-shadow:0 0 0 6px #111;z-index:3}
+.bubs{position:absolute;left:0;right:0;top:602px;display:flex;flex-wrap:wrap;gap:16px}
+.bub{font-size:38px;font-weight:900;padding:12px 26px;border:5px solid #111;border-radius:40px;background:#fff;box-shadow:6px 6px 0 #111;white-space:nowrap;transform-origin:0 50%}
+.hgo{position:absolute;left:0;right:0;top:690px;font-size:46px;font-weight:900;background:#111;color:var(--yel);padding:14px 26px;border-radius:16px;text-align:center;box-shadow:8px 8px 0 var(--c-acc)}
+/* outro */
+.ot{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:30px 34px;background:#fff;border:6px solid #111;border-radius:30px;box-shadow:14px 14px 0 #111}
+.ot-concl{align-self:flex-start;font-size:42px;font-weight:900;background:#111;color:var(--yel);padding:14px 26px;border-radius:14px;transform:rotate(-2deg);box-shadow:7px 7px 0 var(--c-acc)}
+.ot-pick{display:flex;gap:26px;margin:44px 0 30px}
+.ot-btn{flex:1;font-family:"Anton";font-size:150px;line-height:1;color:#fff;text-align:center;padding:26px 0 34px;border:7px solid #111;border-radius:26px;box-shadow:10px 10px 0 #111;-webkit-text-stroke:4px #111;paint-order:stroke fill}
+.ot-btn.a{background:var(--c-440)}.ot-btn.b{background:var(--c-432)}
+</style></head>
+<body><div id="stage"><div id="hdr"><span>432Hz</span><i>vs</i><span>440Hz</span></div><div id="brand">子鱼说声学</div><div id="segs"></div>
+<div id="layer"></div><div id="emoji"></div><div id="cap"></div><div id="foot">声学科普 · 原文带参考资料</div></div>
+<script src="engine.js"></script><script src="widgets.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp } = E;
+  const INFO = { hook: ['', '', '🤔'], pitch: ['01', '标准音是什么', '🎹'], legend: ['02', '432 的各种说法', '🔍'], exp: ['03', '教授做了个实验', '🧪'], result: ['04', '实验结果', '📊'], ab: ['05', '自己听一听', '🎧'], jnd: ['06', '耳朵能分辨多细', '👂'], outro: ['', '', '💬'] };
+  const CHAPS = [['开场', ['hook']], ['标准音', ['pitch']], ['说法', ['legend']], ['实验', ['exp', 'result']], ['试听', ['ab']], ['耳朵', ['jnd']], ['结论', ['outro']]];
+  const card = name => (sc, el) => {
+    const inf = INFO[sc.type];
+    const box = h('div', { class: 'card' }), tag = h('div', { class: 'tagl' }, h('small', { text: inf[0] }), inf[1]);
+    el.append(box, tag);
+    const up = W[name](box, sc);
+    sc.card = box; sc.tag = tag;
+    return up;
+  };
+  const scenes = {
+    hook: (sc, el) => {
+      const a = h('div', { class: 'blk b432', html: '432<small>Hz</small>' }), b = h('div', { class: 'blk b440', html: '440<small>Hz</small>' }), vs = h('div', { class: 'hvs', text: 'VS' });
+      const bubs = [['“432 更好听”', 'c1'], ['“440 伤健康”', 'c2'], ['“和 Nazi 有关”', 'c3']].map(c => { const e = h('div', { class: 'bub', text: c[0] }); e._c = c[1]; return e; });
+      const go = h('div', { class: 'hgo', text: '实验数据 + 盲听测试，一次说清' });
+      el.append(h('div', { class: 'hk' }, a, vs, b, h('div', { class: 'bubs' }, ...bubs), go));
+      return lt => {
+        const ka = p(lt, E.cue(sc, 'n432', 0.2) - 0.1, 0.4, ease.back), kb = p(lt, E.cue(sc, 'n440', 1.5) - 0.1, 0.4, ease.back);
+        a.style.opacity = clamp(ka * 3); a.style.transform = `rotate(${-4 - (1 - ka) * 10}deg) scale(${0.6 + 0.4 * ka})`;
+        b.style.opacity = clamp(kb * 3); b.style.transform = `rotate(${3 + (1 - kb) * 10}deg) scale(${0.6 + 0.4 * kb})`;
+        const kv = p(lt, E.cue(sc, 'n440', 1.5) + 0.15, 0.35, ease.back); vs.style.opacity = clamp(kv * 3); vs.style.transform = `scale(${kv}) rotate(${-8 + Math.sin(lt * 5) * 4}deg)`;
+        const tg = E.cue(sc, 'go', 99), out = 1 - p(lt, tg - 0.15, 0.2);
+        bubs.forEach((e, i) => { const k = p(lt, E.cue(sc, e._c, 99), 0.3, ease.back); e.style.opacity = clamp(k * 3) * out; e.style.transform = `scale(${0.5 + 0.5 * k}) rotate(${[-2, 1.5, -1][i]}deg)`; });
+        const kg = p(lt, tg, 0.35, ease.back); go.style.opacity = clamp(kg * 3); go.style.transform = `scale(${0.8 + 0.2 * kg}) rotate(-1.5deg)`;
+      };
+    },
+    pitch: card('pitch'), legend: card('legend'), exp: card('exp'), result: card('chart'), ab: card('ab'), jnd: card('jnd'),
+    outro: (sc, el) => {
+      const concl = h('div', { class: 'ot-concl', text: '实验里：调到 432Hz，并没有更好听' });
+      const A = h('div', { class: 'ot-btn a', text: '440' }), B = h('div', { class: 'ot-btn b', text: '432' });
+      const srcBox = h('div');
+      const box = h('div', { class: 'ot' }, concl, h('div', { class: 'ot-pick' }, A, B), srcBox);
+      el.append(box); sc.card = box;
+      const us = W.sources(srcBox, sc);
+      return lt => {
+        const kc = p(lt, E.cue(sc, 'concl', 0.2), 0.35, ease.back); concl.style.opacity = clamp(kc * 3); concl.style.transform = `rotate(-2deg) scale(${0.8 + 0.2 * kc})`;
+        const ta = E.cue(sc, 'ask', 3);
+        [A, B].forEach((e, i) => { const k = p(lt, ta + 0.25 + i * 0.35, 0.35, ease.back); e.style.opacity = clamp(k * 3); e.style.transform = `scale(${0.7 + 0.3 * k}) rotate(${(i ? 2 : -2) + Math.sin(lt * 4 + i * 2) * 1.5}deg)`; });
+        us(lt);
+      };
+    },
+  };
+
+  let cap, segs = [], hl = [], emo, lastEmo = null;
+  E.start({
+    fonts: ['900 30px "Noto Sans SC"', '700 30px "Noto Sans SC"', '500 30px "Noto Sans SC"', '400 30px "Noto Sans SC"', '700 30px "Space Grotesk"', '500 30px "Space Grotesk"', '400 40px "Anton"', '400 40px "ZCOOL QingKe HuangYou"'],
+    extraText: '标准音是什么的各种说法教授做了个实验结果自己听一听耳朵能分辨多细开场试论声学科普原文带参考资料并没有更好听调到里数据盲测一次清伤健康和有关正在播放已VS0123456789Hz',
+    layer: document.getElementById('layer'),
+    init(stage, TL) {
+      emo = document.getElementById('emoji');
+      cap = E.Captions(document.getElementById('cap'), { max: 8.6, wordDur: 0.16, wordEase: ease.back });
+      const box = document.getElementById('segs');
+      CHAPS.forEach(([name, types]) => {
+        const ss = TL.scenes.filter(x => types.includes(x.type)); if (!ss.length) return;
+        const a = ss[0].start, b = ss[ss.length - 1].end, fill = h('b');
+        const lab = h('div', { class: 'segl', text: name });
+        const wrap = h('div', { style: `flex:${(b - a).toFixed(2)};position:relative` }, h('div', { class: 'seg', style: 'width:100%;box-sizing:border-box' }, fill), lab);
+        box.append(wrap); segs.push({ a, b, fill, seg: wrap.firstChild, lab });
+      });
+      TL.scenes.forEach(sc => sc.steps.forEach(st => st.tokens && st.tokens.forEach(tk => tk.hl && hl.push(tk.t0))));
+    },
+    scenes,
+    frame(t) {
+      for (const g of segs) { const k = clamp((t - g.a) / (g.b - g.a)); g.fill.style.width = (k * 100).toFixed(2) + '%'; const on = t >= g.a && t < g.b; g.seg.classList.toggle('on', on); g.lab.classList.toggle('on', on); }
+    },
+    transition(sc, t) {
+      const lt = t - sc.start, k = p(lt, 0, 0.32, ease.back);
+      let bump = 0; for (const x of hl) if (t >= x && t < x + 0.22) bump = Math.max(bump, 1 - (t - x) / 0.22);
+      if (sc.card) sc.card.style.transform = `scale(${(0.9 + 0.1 * k) * (1 + 0.014 * bump)}) rotate(${(1 - k) * -2}deg)`;
+      if (sc.tag) { const kt = p(lt, 0.12, 0.3, ease.back); sc.tag.style.opacity = clamp(kt * 3); sc.tag.style.transform = `rotate(-3deg) scale(${0.6 + 0.4 * kt})`; }
+      if (t >= sc.start && t < sc.end) {
+        const e = INFO[sc.type][2];
+        if (lastEmo !== sc.id) { lastEmo = sc.id; emo.textContent = e; }
+        const ke = p(lt, 0.2, 0.4, ease.elastic); emo.style.transform = `scale(${ke}) rotate(${10 + Math.sin(t * 3) * 6}deg)`;
+        emo.style.opacity = sc.type === 'hook' || sc.type === 'outro' ? 0 : 1;
+      }
+    },
+    after(t) {
+      cap(t);
+      const el = document.getElementById('cap'), lk = parseFloat(el.style.getPropertyValue('--lk') || 1);
+      el.style.transform = `scale(${1.06 - 0.06 * lk})`;
+    },
+  });
+})();
+</script></body></html>

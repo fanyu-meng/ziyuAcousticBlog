@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/900.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/700.css">
+<link rel="stylesheet" href="widgets.css">
+<link rel="stylesheet" href="widgets2.css">
+<link rel="stylesheet" href="widgets3.css">
+<style>
+/* Style A：Vibe 知识风 —— 暗色、发光线条、粒子 */
+:root{--c-bg:#04070e;--c-fg:#eaf5ff;--c-dim:#8097ad;--c-line:#3b5772;--c-grid:#17232f;--c-440:#3fd2ff;--c-432:#ffb23e;--c-acc:#7df7c9;--c-bad:#ff6f88;
+  --c-card:rgba(16,28,44,.78);--c-tag:rgba(125,247,201,.08);--c-bar:#40586f;--c-thumb:#0b1420;--kb-w:#dbe8f4;--kb-b:#0a1220;--kb-edge:#0a1220;--c-dot:#5d7389;
+  --font:"Noto Sans SC","Noto Sans CJK SC",sans-serif;--font-num:"Space Grotesk","Noto Sans SC",sans-serif;--mono:"JetBrains Mono","Noto Sans SC",monospace}
+html,body{margin:0;background:var(--c-bg)}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;font-family:var(--font);color:var(--c-fg);background:var(--c-bg)}
+#bg{position:absolute;left:0;top:0}
+#layer{position:absolute;inset:0}
+.scene{position:absolute;left:70px;right:70px;top:176px;height:950px;display:flex;flex-direction:column;justify-content:center;transform-origin:50% 45%}
+#chap{position:absolute;left:70px;top:72px;font-family:var(--mono);font-size:26px;letter-spacing:3px;color:var(--c-dim);display:flex;align-items:center;gap:16px;white-space:nowrap}
+#chap b{color:var(--c-acc);font-weight:700}#chap u{display:block;width:60px;height:2px;background:var(--c-line);text-decoration:none}
+#brand{position:absolute;right:70px;top:70px;font-size:26px;letter-spacing:4px;color:var(--c-dim)}
+#prog{position:absolute;left:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--c-440),var(--c-acc));box-shadow:0 0 14px var(--c-440)}
+/* captions */
+#cap{position:absolute;left:80px;right:80px;bottom:76px;height:190px;display:flex;align-items:center;justify-content:center;align-content:center;flex-wrap:wrap;text-align:center;font-size:52px;line-height:1.42;font-weight:500;text-shadow:0 2px 18px #000}
+#cap .w{display:inline-block;white-space:pre;opacity:var(--k);transform:translateY(calc((1 - var(--k))*12px));filter:blur(calc((1 - var(--k))*5px))}
+#cap .w b{font-weight:500}#cap .w i{font-style:normal;color:var(--c-dim)}
+#cap .w.hl b{color:var(--c-acc);font-weight:700;text-shadow:0 0 22px rgba(125,247,201,.55)}
+/* scene heading */
+.vh{display:flex;align-items:baseline;gap:18px;margin-bottom:22px;white-space:nowrap}
+.sc-ab .vh{margin-bottom:10px}.sc-ab .vh-zh{font-size:46px}
+.vh-zh{font-size:58px;font-weight:900;letter-spacing:2px}
+.vh-en{font-family:var(--mono);font-size:22px;letter-spacing:4px;color:var(--c-dim)}
+/* glow on the two reference colours */
+.wv.s440,.kb-hi-a,.bar.b440{filter:drop-shadow(0 0 12px rgba(63,210,255,.75))}
+.wv.s432,.bar.b432{filter:drop-shadow(0 0 12px rgba(255,178,62,.75))}
+.tl-dot,.kb-hi-c{filter:drop-shadow(0 0 10px rgba(125,247,201,.8))}
+.wv.live{stroke-width:6}
+.ab-card{backdrop-filter:blur(6px)}
+.ab-card.play{box-shadow:0 0 34px rgba(125,247,201,.28)}
+.ab-video{box-shadow:0 0 0 2px var(--c-line),0 20px 60px rgba(0,0,0,.6)}
+.ab-video.live{box-shadow:0 0 0 3px var(--c-acc),0 0 44px rgba(125,247,201,.3)}
+.lg-chip{box-shadow:0 0 24px rgba(255,178,62,.25)}
+/* second component set */
+.dp-cv{filter:drop-shadow(0 0 6px rgba(63,210,255,.35))}
+.pl-speed b{text-shadow:0 0 36px rgba(63,210,255,.5)}
+.pl.play .pl-bars i{box-shadow:0 0 12px rgba(63,210,255,.5)}
+.pl-video,.br-fig{box-shadow:0 0 0 2px var(--c-line),0 20px 60px rgba(0,0,0,.6)}
+.pl-video.live{box-shadow:0 0 0 3px var(--c-acc),0 0 44px rgba(125,247,201,.3)}
+.hk2-ring{filter:drop-shadow(0 0 8px rgba(63,210,255,.7))}
+.hk2-curve,.hk2-dot{filter:drop-shadow(0 0 10px rgba(255,178,62,.7))}
+.o2-concl em{text-shadow:0 0 30px rgba(63,210,255,.5)}.o2-concl i{text-shadow:0 0 30px rgba(255,178,62,.5)}
+/* hook */
+.hk{position:relative;height:900px}
+.hk-wave{position:absolute;left:-70px;top:120px;width:1080px;height:520px}
+.hk-num{position:absolute;font-family:var(--font-num);font-weight:700;font-size:250px;line-height:1;letter-spacing:-6px}
+.hk-num small{font-size:64px;letter-spacing:0;margin-left:8px;opacity:.85}
+.hk-440{left:0;top:40px;color:var(--c-440);text-shadow:0 0 50px rgba(63,210,255,.55)}
+.hk-432{right:0;top:330px;color:var(--c-432);text-shadow:0 0 50px rgba(255,178,62,.55);text-align:right}
+.hk-vs{position:absolute;left:0;top:384px;font-family:var(--mono);font-size:40px;letter-spacing:10px;color:var(--c-dim)}
+.hk-q{position:absolute;left:0;right:0;top:640px;font-size:104px;font-weight:900;letter-spacing:4px}
+.hk-chips{position:absolute;left:0;right:0;top:790px;display:flex;gap:16px;flex-wrap:wrap}
+.hk-chip{font-size:36px;font-weight:700;padding:10px 26px;border-radius:999px;border:2px solid var(--c-line);background:var(--c-card);color:var(--c-fg);transform-origin:left center;white-space:nowrap}
+.hk-go{position:absolute;left:0;right:0;top:800px;font-size:50px;font-weight:700;color:var(--c-acc);letter-spacing:2px}
+/* outro */
+.ot{position:relative;height:900px}
+.ot-big{font-family:var(--font-num);font-size:150px;font-weight:700;line-height:1.1;margin-top:10px}
+.ot-big .a{color:var(--c-440);text-shadow:0 0 40px rgba(63,210,255,.5)}.ot-big .b{color:var(--c-432);text-shadow:0 0 40px rgba(255,178,62,.5)}
+.ot-big i{font-style:normal;font-size:60px;color:var(--c-dim);margin:0 22px;font-family:var(--font);font-weight:500}
+.ot-concl{display:inline-block;margin-top:22px;font-size:40px;font-weight:700;padding:14px 28px;border-radius:14px;border:2px solid var(--c-acc);color:var(--c-acc);background:var(--c-tag)}
+.ot-ask{font-size:62px;font-weight:900;margin-top:44px;line-height:1.3}
+.ot .src{position:absolute;left:0;right:0;bottom:0}
+</style></head>
+<body><div id="stage"><canvas id="bg" width="1080" height="1440"></canvas><div id="layer"></div>
+<div id="chap"></div><div id="brand">子鱼说声学</div><div id="cap"></div><div id="prog"></div></div>
+<script src="engine.js"></script><script src="widgets.js"></script><script src="widgets2.js"></script><script src="widgets3.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp } = E;
+  const CH = { hook: ['00', '', ''], pitch: ['01', '标准音', 'CONCERT PITCH'], tones: ['01', '听一下', '440 / 432'], legend: ['02', '432 的说法', 'THE 432 CLAIM'], exp: ['03', '做个实验', 'THE EXPERIMENT'],
+    result: ['03', '实验结果', 'RESULTS'], ab: ['04', '自己听', 'LISTEN'], jnd: ['05', '耳朵的分辨率', 'JUST NOTICEABLE'], outro: ['06', '', ''] };
+  const withHead = name => (sc, el) => {
+    const c = CH[sc.type];
+    const hd = h('div', { class: 'vh' }, h('span', { class: 'vh-zh', text: c[1] }), h('span', { class: 'vh-en', text: c[2] }));
+    const box = h('div', { class: 'vbox' }); el.append(hd, box);
+    const up = W[name](box, sc);
+    return (lt, t) => { const k = p(lt, 0, 0.5); hd.style.opacity = k; hd.style.transform = `translateX(${(1 - k) * -24}px)`; up(lt, t); };
+  };
+  const sine = (x0, x1, y, amp, cyc, phase) => { let d = ''; for (let i = 0; i <= 160; i++) { const u = i / 160; d += (i ? 'L' : 'M') + lerp(x0, x1, u).toFixed(1) + ' ' + (y - amp * Math.sin(u * cyc * 2 * Math.PI + phase)).toFixed(1); } return d; };
+
+  const scenes = {
+    hook: (sc, el) => {
+      const pa = s('path', { class: 'wv s440', fill: 'none', 'stroke-width': 4 }), pb = s('path', { class: 'wv s432', fill: 'none', 'stroke-width': 4 });
+      const wave = s('svg', { class: 'hk-wave', viewBox: '0 0 1080 520' }, pa, pb);
+      const n440 = h('div', { class: 'hk-num hk-440', html: '440<small>Hz</small>' }), n432 = h('div', { class: 'hk-num hk-432', html: '432<small>Hz</small>' });
+      const vs = h('div', { class: 'hk-vs', text: 'VS' }), q = h('div', { class: 'hk-q', text: '哪个更好听？' });
+      const chips = [['“432 更好听”', 'c1'], ['“440 对健康不利”', 'c2'], ['“和 Nazi 有关”', 'c3']].map(c => { const e = h('div', { class: 'hk-chip', text: c[0] }); e._c = c[1]; return e; });
+      const go = h('div', { class: 'hk-go', text: '实验数据 × 你自己的耳朵' });
+      el.append(h('div', { class: 'hk' }, wave, n440, vs, n432, q, h('div', { class: 'hk-chips' }, ...chips), go));
+      return lt => {
+        const k4 = p(lt, E.cue(sc, 'n440', 0.6) - 0.1, 0.5), k3 = p(lt, E.cue(sc, 'n432', 1.6) - 0.1, 0.5);
+        n440.style.opacity = k4; n440.style.transform = `translateX(${(1 - k4) * -80}px)`;
+        n432.style.opacity = k3; n432.style.transform = `translateX(${(1 - k3) * 80}px)`;
+        vs.style.opacity = k3 * 0.9;
+        pa.setAttribute('d', sine(0, 1080, 190, 60, 11, -lt * 5)); pb.setAttribute('d', sine(0, 1080, 360, 60, 10.8, -lt * 5));
+        pa.style.opacity = k4 * 0.5; pb.style.opacity = k3 * 0.5;
+        const kq = p(lt, E.cue(sc, 'q', 3) - 0.05, 0.4, ease.back); q.style.opacity = clamp(kq * 2); q.style.transform = `scale(${0.85 + 0.15 * kq})`; q.style.transformOrigin = 'left center';
+        const tg = E.cue(sc, 'go', 99), out = 1 - p(lt, tg - 0.2, 0.3);
+        chips.forEach(c => { const k = p(lt, E.cue(sc, c._c, 99), 0.35, ease.back); c.style.opacity = clamp(k * 2) * out; c.style.transform = `scale(${0.7 + 0.3 * k})`; });
+        const kg = p(lt, tg, 0.4); go.style.opacity = kg; go.style.transform = `translateY(${(1 - kg) * 20}px)`;
+      };
+    },
+    // generic scenes for any article: `w` = heading + component named in the script, `full` = component only
+    w: (sc, el) => {
+      const d = sc.data, hd = h('div', { class: 'vh' }, h('span', { class: 'vh-zh', text: d.head[1] }), h('span', { class: 'vh-en', text: d.head[2] || '' }));
+      const box = h('div', { class: 'vbox' }); el.append(hd, box);
+      const up = W[d.widget](box, sc);
+      return (lt, t) => { const k = p(lt, 0, 0.5); hd.style.opacity = k; hd.style.transform = `translateX(${(1 - k) * -24}px)`; up(lt, t); };
+    },
+    full: (sc, el) => W[sc.data.widget](el, sc),
+    pitch: withHead('pitch'), tones: withHead('tones'), legend: withHead('legend'), exp: withHead('exp'), result: withHead('chart'), ab: withHead('ab'), jnd: withHead('jnd'),
+    outro: (sc, el) => {
+      const big = h('div', { class: 'ot-big', html: '<span class="a">440</span><i>还是</i><span class="b">432</span>' });
+      const concl = h('div', { class: 'ot-concl', text: '实验结论：调到 432Hz，并不会更好听' });
+      const ask = h('div', { class: 'ot-ask', html: '你更喜欢哪一个？<br>评论区告诉我' });
+      const srcBox = h('div');
+      el.append(h('div', { class: 'ot' }, concl, big, ask, srcBox));
+      const us = W.sources(srcBox, sc);
+      return lt => {
+        const kc = p(lt, E.cue(sc, 'concl', 0.2), 0.4); concl.style.opacity = kc; concl.style.transform = `translateY(${(1 - kc) * 16}px)`;
+        const kb = p(lt, E.cue(sc, 'ask', 3) - 0.1, 0.5, ease.back); big.style.opacity = clamp(kb * 2); big.style.transform = `scale(${0.9 + 0.1 * kb})`; big.style.transformOrigin = 'left center';
+        const ka = p(lt, E.cue(sc, 'ask', 3) + 0.5, 0.4); ask.style.opacity = ka;
+        us(lt);
+      };
+    },
+  };
+
+  // ---- background: drifting particles, soft glow, and a line that moves with whatever is sounding ----
+  let ctx, parts = [];
+  function level(t) {
+    for (const sc of E.TL.scenes) if (t >= sc.start && t < sc.end) { const st = E.clipStep(sc, t); if (st) { const b = E.bandsAt(E.TL.clips[st.clip], t - st.start); return b.reduce((a, v) => a + v, 0) / (b.length * 99) * 1.25; } }
+    return E.voice(t);
+  }
+  function drawBg(t) {
+    ctx.clearRect(0, 0, 1080, 1440);
+    let g = ctx.createRadialGradient(540, 560, 60, 540, 560, 900);
+    g.addColorStop(0, 'rgba(26,52,84,.55)'); g.addColorStop(0.55, 'rgba(10,20,36,.25)'); g.addColorStop(1, 'rgba(4,7,14,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1440);
+    ctx.strokeStyle = 'rgba(70,100,130,.10)'; ctx.lineWidth = 1;               // faint grid drifting down
+    const off = (t * 10) % 90;
+    for (let y = -90 + off; y < 1440; y += 90) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
+    for (let x = 0; x <= 1080; x += 90) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1440); ctx.stroke(); }
+    for (const q of parts) {
+      const y = ((q.y - t * q.v) % 1500 + 1500) % 1500 - 30, x = q.x + Math.sin(t * q.f + q.ph) * 26;
+      const a = q.a * (0.55 + 0.45 * Math.sin(t * q.tw + q.ph));
+      ctx.fillStyle = `rgba(${q.c},${a.toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, q.r, 0, 6.283); ctx.fill();
+    }
+    const lv = level(t), Y = 1150;                                              // audio line above the captions
+    ctx.save(); ctx.shadowBlur = 18; ctx.shadowColor = 'rgba(63,210,255,.9)';
+    const gr = ctx.createLinearGradient(0, 0, 1080, 0); gr.addColorStop(0, 'rgba(63,210,255,0)'); gr.addColorStop(0.2, 'rgba(63,210,255,.9)'); gr.addColorStop(0.8, 'rgba(125,247,201,.9)'); gr.addColorStop(1, 'rgba(125,247,201,0)');
+    ctx.strokeStyle = gr; ctx.lineWidth = 3; ctx.beginPath();
+    for (let x = 0; x <= 1080; x += 6) {
+      const u = x / 1080, win = Math.sin(Math.PI * u) ** 2;
+      const y = Y + win * (4 + 44 * lv) * (Math.sin(u * 38 - t * 9) * 0.6 + Math.sin(u * 67 + t * 13) * 0.3 + Math.sin(u * 17 + t * 5) * 0.4);
+      x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+
+  let cap, chapEl, lastChap = '';
+  E.start({
+    fonts: ['500 30px "Noto Sans SC"', '700 30px "Noto Sans SC"', '900 30px "Noto Sans SC"', '400 30px "Noto Sans SC"', '700 30px "Space Grotesk"', '500 30px "Space Grotesk"', '400 20px "JetBrains Mono"', '700 20px "JetBrains Mono"'],
+    extraText: '标准音听一下的说法做个实验结果自己耳朵分辨率还是评论区告诉我你更喜欢哪一个调到并不会好听数据正在播放已参考VS？“”×',
+    pre: 0, post: 0.3,
+    layer: document.getElementById('layer'),
+    init() {
+      ctx = document.getElementById('bg').getContext('2d');
+      const r = E.rng(11);
+      for (let i = 0; i < 110; i++) parts.push({ x: r() * 1080, y: r() * 1500, v: 8 + r() * 30, r: 0.8 + r() * 2.2, a: 0.15 + r() * 0.5, f: 0.2 + r() * 0.6, ph: r() * 6.28, tw: 0.6 + r() * 2, c: r() < 0.25 ? '255,190,90' : r() < 0.6 ? '90,215,255' : '160,250,215' });
+      cap = E.Captions(document.getElementById('cap'), { max: 16, wordDur: 0.2 });
+      chapEl = document.getElementById('chap');
+    },
+    scenes,
+    frame(t) { drawBg(t); document.getElementById('prog').style.width = (t / E.TL.dur * 1080).toFixed(1) + 'px'; },
+    transition(sc, t) {
+      const kin = sc.i === 0 ? p(t, 0, 0.5) : p(t, sc.start, 0.4), kout = 1 - p(t, sc.end, 0.3, ease.in);
+      sc.el.style.opacity = kin * kout;
+      sc.el.style.transform = `scale(${(1.03 - 0.03 * kin) * (1 + 0.03 * (1 - kout))})`;
+      if (t >= sc.start && t < sc.end) {
+        const c = (sc.data && sc.data.head) || CH[sc.type] || ['', '', ''];
+        if (lastChap !== sc.id) { lastChap = sc.id; chapEl.replaceChildren(h('b', { text: c[0] || (sc.data && sc.data.no) || '' }), h('u'), h('span', { text: c[1] || (sc.data && sc.data.chap) || (sc.type === 'hook' ? '432Hz vs 440Hz' : '你怎么选') })); }
+        chapEl.style.opacity = p(t, sc.start, 0.5);
+      }
+    },
+    after(t) { cap(t); },
+  });
+})();
+</script></body></html>

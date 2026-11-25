@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/900.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/zcool-kuaile/400.css">
+<link rel="stylesheet" href="widgets.css">
+<link rel="stylesheet" href="widgets2.css">
+<link rel="stylesheet" href="widgets3.css">
+<style>
+/* Style C：盲听挑战 —— 答题闯关，主持人在下方讲解 */
+:root{--c-bg:#fff;--c-fg:#1c1638;--c-dim:#6d6888;--c-line:#1c1638;--c-grid:#e8e6f2;--c-440:#1aa7e8;--c-432:#ff8a1f;--c-acc:#7b3ff2;--c-bad:#e5245b;
+  --c-card:#f6f4ff;--c-tag:#f1ebff;--c-bar:#cfcbe2;--c-thumb:#ebe7fb;--kb-w:#fff;--kb-b:#1c1638;--kb-edge:#1c1638;--c-dot:#cdc9e0;
+  --font:"Noto Sans SC","Noto Sans CJK SC",sans-serif;--font-num:"Space Grotesk","Noto Sans SC",sans-serif;--fun:"ZCOOL KuaiLe","Noto Sans SC",sans-serif;
+  --ink:#1c1638;--yel:#ffd23f;--pink:#ff5d8f}
+html,body{margin:0;background:#2a1466}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;font-family:var(--font);color:#fff;background:#2a1466}
+#bg{position:absolute;left:0;top:0}
+#hud{position:absolute;left:44px;right:44px;top:44px;height:100px;display:flex;align-items:center;justify-content:space-between}
+#logo{font-family:var(--fun);font-size:58px;color:var(--ink);background:var(--yel);padding:6px 30px 10px;border-radius:26px;border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink);transform:rotate(-2deg);white-space:nowrap}
+#dots{display:flex;gap:14px}
+.dot{width:64px;height:64px;border-radius:50%;border:5px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-num);font-weight:700;font-size:32px;color:#fff;background:rgba(255,255,255,.08)}
+.dot.cur{background:var(--yel);color:var(--ink);border-color:var(--ink)}
+.dot.done{background:#3ddc97;color:var(--ink);border-color:var(--ink)}
+#layer{position:absolute;inset:0}
+.scene{position:absolute;left:50px;top:186px;width:980px;height:870px;transform-origin:50% 60%}
+/* host */
+#host{position:absolute;left:36px;top:1086px;width:200px;height:300px}
+#bubble{position:absolute;left:236px;right:40px;top:1096px;height:262px;background:#fff;border:6px solid var(--ink);border-radius:40px;box-shadow:0 10px 0 var(--ink);display:flex;align-items:center}
+#bubble:before{content:"";position:absolute;left:-30px;top:96px;border:16px solid transparent;border-right:26px solid var(--ink)}
+#bubble:after{content:"";position:absolute;left:-18px;top:100px;border:12px solid transparent;border-right:20px solid #fff}
+#cap{padding:0 36px;font-size:50px;line-height:1.36;font-weight:900;color:var(--ink);display:flex;flex-wrap:wrap;align-content:center;width:100%;box-sizing:border-box}
+#hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fun);font-size:64px;color:var(--c-acc)}
+#cap .w{display:inline-block;white-space:pre;opacity:var(--k);transform:translateY(calc((1 - var(--k))*10px))}
+#cap .w b{font-weight:900}#cap .w i{font-style:normal}
+#cap .w.hl b{color:var(--c-acc)}
+#cap .w.cur b{background:var(--yel);box-shadow:0 0 0 4px var(--yel);border-radius:6px}
+/* intro */
+.in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.in-t{font-family:var(--fun);font-size:150px;line-height:1.12;color:var(--yel);text-shadow:0 8px 0 var(--ink),0 0 0 #000;-webkit-text-stroke:5px var(--ink);paint-order:stroke fill}
+.in-vs{display:flex;align-items:center;gap:26px;margin-top:40px}
+.in-n{font-family:var(--font-num);font-weight:700;font-size:118px;line-height:1;padding:16px 34px;border-radius:30px;border:6px solid var(--ink);box-shadow:0 10px 0 var(--ink);color:#fff}
+.in-n small{font-size:.42em;margin-left:6px}
+.in-n.a{background:var(--c-440)}.in-n.b{background:var(--c-432)}
+.in-x{font-family:var(--fun);font-size:64px;color:#fff}
+.in-q{font-size:54px;font-weight:900;margin-top:46px;color:#fff}
+.in-rule{margin-top:34px;font-size:44px;font-weight:900;color:var(--ink);background:#fff;padding:14px 34px;border-radius:999px;border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink)}
+/* round */
+.rd{position:absolute;inset:0;display:flex;flex-direction:column}
+.rd-h{display:flex;align-items:center;gap:22px;height:104px;flex:none}
+.rd-no{font-family:var(--fun);font-size:76px;color:var(--ink);background:var(--pink);padding:0 28px 6px;border-radius:24px;border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink);transform:rotate(-3deg);white-space:nowrap}
+.rd-t{font-size:40px;font-weight:900;line-height:1.25}
+.rd-t small{display:block;font-size:26px;font-weight:500;opacity:.8;margin-top:4px}
+.rd-video{position:relative;margin-top:22px;border-radius:28px;overflow:hidden;border:6px solid var(--ink);box-shadow:0 10px 0 var(--ink);aspect-ratio:2/1;width:78%;align-self:center;background:#120a2e;flex:none}
+.rd-video img{width:100%;height:100%;object-fit:cover;display:block}
+.rd-mask{position:absolute;inset:0;background:repeating-linear-gradient(45deg,#3a2188 0 26px,#44289c 26px 52px);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#fff;text-align:center;line-height:1.4}
+.rd-cards{display:flex;gap:28px;margin-top:26px;flex:1;min-height:0;perspective:1600px}
+.rd-card{flex:1;position:relative;transform-style:preserve-3d}
+.face{position:absolute;inset:0;border-radius:36px;border:6px solid var(--ink);box-shadow:0 12px 0 var(--ink);backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;color:var(--ink);overflow:hidden}
+.face b{font-family:var(--font-num);font-weight:700;font-size:190px;line-height:1}
+.has-video .face b{font-size:110px}
+.face em{font-style:normal;font-size:30px;font-weight:700;height:40px;margin-top:6px;color:var(--c-dim)}
+.eq{display:flex;align-items:flex-end;gap:6px;height:150px;width:76%;margin-top:14px}
+.has-video .eq{height:74px;margin-top:4px}
+.eq i{flex:1;height:100%;background:#d9d4f0;border-radius:6px 6px 0 0;transform-origin:bottom}
+.rd-card.play .front{background:var(--yel)}
+.rd-card.play .eq i{background:var(--ink)}
+.back strong{font-family:var(--font-num);font-weight:700;font-size:92px;line-height:1.1;color:#fff}
+.has-video .back strong{font-size:64px}
+.back span{font-size:30px;font-weight:900;color:#fff;margin-top:6px;opacity:.95}
+.back.k440{background:var(--c-440)}.back.k432{background:var(--c-432)}
+.back b{color:#fff}
+.rd-count{position:absolute;left:50%;top:56%;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;background:var(--ink);border:8px solid #fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-num);font-weight:700;font-size:150px;color:var(--yel);box-shadow:0 0 0 8px var(--ink),0 16px 40px rgba(0,0,0,.5);z-index:5}
+.has-video .rd-count{top:76%;width:190px;height:190px;margin:-95px 0 0 -95px;font-size:120px}
+.rd-stamp{position:absolute;left:50%;top:50%;z-index:6;font-family:var(--fun);font-size:82px;color:var(--ink);background:var(--yel);padding:6px 34px 12px;border-radius:26px;border:6px solid var(--ink);box-shadow:0 10px 0 var(--ink);white-space:nowrap}
+/* knowledge card */
+.kc{position:absolute;inset:0;background:#fff;border-radius:40px;border:6px solid var(--ink);box-shadow:0 14px 0 var(--ink);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.kc-h{flex:none;height:92px;background:var(--c-acc);display:flex;align-items:center;gap:20px;padding:0 30px;border-bottom:6px solid var(--ink)}
+.kc-h span{font-family:var(--fun);font-size:38px;background:var(--yel);color:var(--ink);padding:0 20px 4px;border-radius:14px;border:4px solid var(--ink)}
+.kc-h b{font-size:44px;font-weight:900;color:#fff}
+.kc-b{flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px 30px}
+.lg{font-size:30px;height:720px}
+.lg-chips{top:566px}
+.lg-quote{top:118px}.lg-quote .lg-cn{font-size:1.2em}.lg-quote .lg-en{font-size:.68em}
+.lg-search,.lg-row,.lg-chip,.lg-quote{border-color:var(--ink)}
+.lg-chip{background:#fff3d1}
+.wg-svg .ex-tag{fill:#fff3d1;stroke:var(--ink);stroke-width:3}.wg-svg .t-acc{fill:var(--ink)}
+/* full-area scenes sit directly on the purple stage: light text */
+.sc-full{--c-fg:#fff;--c-dim:#dcd4ff;--c-line:#fff;--c-acc:#ffd23f;--c-tag:rgba(255,255,255,.1);--c-card:rgba(255,255,255,.12);display:flex;flex-direction:column;justify-content:center}
+.sc-full .hk2-title{font-family:var(--fun);font-weight:400;font-size:112px;color:var(--yel);-webkit-text-stroke:5px var(--ink);paint-order:stroke fill;text-shadow:0 8px 0 var(--ink)}
+.sc-full .hk2-title em{color:#fff}
+.sc-full .hk2-chip{background:#fff;color:var(--ink);border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink);font-weight:900}
+/* multiple-choice rounds */
+.rd-eqbig{margin-top:22px;height:250px;border-radius:28px;border:6px solid var(--ink);box-shadow:0 10px 0 var(--ink);background:#120a2e;display:flex;align-items:flex-end;gap:8px;padding:26px 34px;flex:none}
+.rd-eqbig i{flex:1;height:100%;background:var(--yel);border-radius:6px 6px 0 0;transform-origin:bottom}
+.rd-q{margin-top:20px;font-size:44px;font-weight:900;text-align:center;flex:none}
+.choice .face strong{font-size:64px;font-weight:900;line-height:1.2;margin-top:4px}
+.choice .face b{font-size:92px}
+.choice .back.ok{background:#3ddc97}.choice .back.no{background:#8d86ad}
+.choice .back strong,.choice .back b,.choice .back span{color:var(--ink)}
+.choice .back.no strong,.choice .back.no b{color:#fff;opacity:.85}
+.choice .rd-video{width:64%}
+.choice .back span{font-size:26px;margin-top:2px}
+.sc-full .wg-svg .t-acc{fill:var(--c-acc)}
+/* knowledge-card skin for the second component set */
+.kc .fm{font-size:30px}
+.kc .br{font-size:30px}.kc .br-fig img{aspect-ratio:2.35/1}
+.kc .pl-speed b{color:var(--c-acc)}
+.kc .fm-eq{font-size:2.9em}
+.kc .dp-cap{left:.3em;top:.1em}
+/* outro */
+.ot{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ot-score{font-family:var(--fun);font-size:120px;color:var(--yel);-webkit-text-stroke:5px var(--ink);paint-order:stroke fill;text-shadow:0 8px 0 var(--ink);line-height:1.15}
+.ot-ans{display:flex;gap:12px;margin-top:34px}
+.ot-a{width:176px;padding:14px 0 16px;border-radius:24px;border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink);background:#fff;color:var(--ink);font-weight:900;font-size:26px;line-height:1.3}
+.ot-a b{display:block;font-family:var(--font-num);font-size:36px}
+.ot-a i{font-style:normal;display:block;font-size:24px;color:var(--c-acc)}
+.ot-concl{margin-top:36px;font-size:40px;font-weight:900;background:#fff;color:var(--ink);padding:14px 30px;border-radius:999px;border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink)}
+.ot .src{margin-top:30px;color:#d9d2ff;font-size:22px;text-align:left;width:100%}
+.ot .src-h{color:#fff}
+</style></head>
+<body><div id="stage"><canvas id="bg" width="1080" height="1440"></canvas>
+<div id="hud"><div id="logo">盲听挑战</div><div id="dots"></div></div>
+<div id="layer"></div><div id="host"></div><div id="bubble"><div id="cap"></div><div id="hint"></div></div></div>
+<script src="engine.js"></script><script src="widgets.js"></script><script src="widgets2.js"></script><script src="widgets3.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp } = E;
+  const NB = 14;
+  const scenes = {
+    intro: (sc, el) => {
+      const t1 = h('div', { class: 'in-t', html: '你能<br>听出来吗？' });
+      const a = h('div', { class: 'in-n a', html: '440<small>Hz</small>' }), x = h('div', { class: 'in-x', text: 'VS' }), b = h('div', { class: 'in-n b', html: '432<small>Hz</small>' });
+      const q = h('div', { class: 'in-q', text: '同一段音乐，两种调音' }), rule = h('div', { class: 'in-rule', text: '一共 5 道题 · 记好你的答案' });
+      el.append(h('div', { class: 'in' }, t1, h('div', { class: 'in-vs' }, a, x, b), q, rule));
+      return lt => {
+        const k = p(lt, 0.1, 0.5, ease.back); t1.style.opacity = clamp(k * 3); t1.style.transform = `scale(${0.6 + 0.4 * k}) rotate(${-3 + Math.sin(lt * 2.4) * 1.2}deg)`;
+        const ka = p(lt, E.cue(sc, 'n440', 2) - 0.1, 0.35, ease.back), kb = p(lt, E.cue(sc, 'n432', 3) - 0.1, 0.35, ease.back);
+        a.style.opacity = clamp(ka * 3); a.style.transform = `scale(${0.5 + 0.5 * ka}) rotate(-3deg)`;
+        b.style.opacity = clamp(kb * 3); b.style.transform = `scale(${0.5 + 0.5 * kb}) rotate(3deg)`;
+        x.style.opacity = kb; q.style.opacity = p(lt, E.cue(sc, 'n440', 2) - 0.6, 0.4);
+        const kr = p(lt, E.cue(sc, 'rule', 99), 0.35, ease.back); rule.style.opacity = clamp(kr * 3); rule.style.transform = `scale(${0.6 + 0.4 * kr})`;
+      };
+    },
+    round: (sc, el) => {
+      const D = sc.data, TL = E.TL;
+      const choice = D.mode === 'choice';
+      const mk = (side, o) => {
+        const bars = Array.from({ length: NB }, () => h('i')), st = h('em');
+        const front = choice ? h('div', { class: 'face front' }, h('b', { text: side }), h('strong', { text: o.label }))
+          : h('div', { class: 'face front' }, h('b', { text: side }), h('div', { class: 'eq' }, ...bars), st);
+        const right = choice && D.answer === side.toLowerCase();
+        const back = choice ? h('div', { class: 'face back ' + (right ? 'ok' : 'no') }, h('b', { text: right ? '✓' : '✗' }), h('strong', { text: o.label }), o.tip ? h('span', { text: o.tip }) : null)
+          : h('div', { class: 'face back k' + o.kind }, h('b', { text: side }), h('strong', { text: o.label }), o.tip ? h('span', { text: o.tip }) : null);
+        const card = h('div', { class: 'rd-card' }, front, back);
+        return { card, front, back, bars, st, o };
+      };
+      const A = mk('A', D.a), B = mk('B', D.b);
+      const img = h('img'), mask = h('div', { class: 'rd-mask', html: '画面先藏起来<br>只用耳朵' });
+      const video = D.video ? h('div', { class: 'rd-video' }, img, D.hide ? mask : null) : null;
+      const count = h('div', { class: 'rd-count' }), stamp = h('div', { class: 'rd-stamp', text: D.stamp || '' });
+      const head = h('div', { class: 'rd-h' }, h('div', { class: 'rd-no', text: `第 ${D.no} 题` }), h('div', { class: 'rd-t', html: D.title + (D.sub ? `<small>${D.sub}</small>` : '') }));
+      const cards = h('div', { class: 'rd-cards' }, A.card, B.card);
+      const big = Array.from({ length: 20 }, () => h('i')), eqBig = choice && !D.video ? h('div', { class: 'rd-eqbig' }, ...big) : null;
+      const qEl = choice && D.q ? h('div', { class: 'rd-q', text: D.q }) : null;
+      el.append(h('div', { class: 'rd' + (D.video || choice ? ' has-video' : '') + (choice ? ' choice' : '') }, head, video, eqBig, qEl, cards, count, D.stamp ? stamp : null));
+      const sideOf = n => (n === D.a.clip ? A : n === D.b.clip ? B : null);
+      const pick = sc.steps.find(x => x.kind === 'wait' && x.name === 'pick');
+      const first = sc.steps.find(x => x.kind === 'clip' && TL.clips[x.clip].frames) || sc.steps.find(x => x.kind === 'clip');
+      return (lt, t) => {
+        const kh = p(lt, 0, 0.4, ease.back); head.style.opacity = clamp(kh * 3); head.style.transform = `translateY(${(1 - kh) * -30}px)`;
+        const st = E.clipStep(sc, t), cur = st ? sideOf(st.clip) : null;
+        const rev = p(lt, E.cue(sc, 'reveal', 99) - 0.05, 0.6, ease.io);
+        [A, B].forEach((S, i) => {
+          const kin = p(lt, 0.15 + i * 0.12, 0.45, ease.back), playing = !choice && S === cur;
+          const my = sc.steps.find(x => x.kind === 'clip' && sideOf(x.clip) === S), done = my && t >= my.end;
+          S.card.style.opacity = clamp(kin * 3);
+          const lift = playing ? 1 : 0, dim = cur && !playing ? 0.94 : 1;
+          S.card.style.transform = `translateY(${(1 - kin) * 60 - lift * 10}px) scale(${dim * (playing ? 1.03 : 1)})`;
+          S.card.classList.toggle('play', playing);
+          S.front.style.transform = `rotateY(${rev * 180}deg)`; S.back.style.transform = `rotateY(${-180 + rev * 180}deg)`;
+          const bands = playing ? E.bandsAt(TL.clips[st.clip], t - st.start) : null;
+          S.bars.forEach((b, j) => { const v = bands ? bands[Math.floor(j * 20 / NB)] / 99 : 0.05; b.style.transform = `scaleY(${Math.max(0.05, v).toFixed(3)})`; });
+          S.st.textContent = playing ? '▶ 正在播放' : done ? '听完了' : '';
+        });
+        if (eqBig) { const bands = st ? E.bandsAt(TL.clips[st.clip], t - st.start) : null; big.forEach((b, j) => { b.style.transform = `scaleY(${Math.max(0.04, bands ? bands[j] / 99 : 0.04).toFixed(3)})`; }); }
+        if (qEl) { const kq = p(lt, E.cue(sc, 'ask', 0.4), 0.4, ease.back); qEl.style.opacity = clamp(kq * 3); qEl.style.transform = `scale(${0.8 + 0.2 * kq})`; }
+        if (video) {
+          const kv = p(lt, 0.2, 0.45, ease.back); video.style.opacity = clamp(kv * 3); video.style.transform = `scale(${0.85 + 0.15 * kv})`;
+          const vs = st && TL.clips[st.clip].frames ? st : null;
+          if (vs) E.frame(img, TL.clips[st.clip], Math.floor((t - st.start) * TL.fps) + 1);
+          else if (!img.dataset.src && first && TL.clips[first.clip].frames) E.frame(img, TL.clips[first.clip], 1);
+          if (D.hide) mask.style.opacity = 1 - p(lt, E.cue(sc, 'reveal', 99) + 0.2, 0.4);
+        }
+        // countdown while the viewer picks
+        if (pick && t >= pick.start && t < pick.end) {
+          const u = (t - pick.start) / (pick.end - pick.start), n = 3 - Math.floor(u * 3), f = (u * 3) % 1;
+          count.style.display = 'flex'; count.textContent = n; count.style.transform = `scale(${1.25 - 0.25 * ease.out(clamp(f * 3))})`;
+        } else count.style.display = 'none';
+        if (D.stamp) { const ks = p(lt, E.cue(sc, 'stamp', E.cue(sc, 'reveal', 99) + 0.7), 0.4, ease.back); stamp.style.opacity = clamp(ks * 3); stamp.style.transform = `translate(-50%,-50%) rotate(-6deg) scale(${1.6 - 0.6 * ks})`; }
+      };
+    },
+    full: (sc, el) => W[sc.data.widget](el, sc),
+    know: (sc, el) => {
+      const body = h('div', { class: 'kc-b' });
+      const box = h('div', { class: 'kc' }, h('div', { class: 'kc-h' }, h('span', { text: '知识卡' }), h('b', { text: sc.data.title })), body);
+      el.append(box); sc.card = box;
+      return W[sc.data.widget](body, sc);
+    },
+    outro: (sc, el) => {
+      const score = h('div', { class: 'ot-score', html: sc.data.score || '你对了几题？' });
+      const ans = sc.data.answers.map((a, i) => h('div', { class: 'ot-a' }, h('b', { text: '第 ' + (i + 1) + ' 题' }), a[0], h('i', { text: a[1] })));
+      const concl = h('div', { class: 'ot-concl', text: sc.data.concl || '实验结论：调到 432Hz，并不会更好听' });
+      const srcBox = h('div', { style: 'width:100%' });
+      el.append(h('div', { class: 'ot' }, score, h('div', { class: 'ot-ans' }, ...ans), concl, srcBox));
+      const us = W.sources(srcBox, sc);
+      return lt => {
+        const k = p(lt, E.cue(sc, 'score', 0.2), 0.45, ease.back); score.style.opacity = clamp(k * 3); score.style.transform = `scale(${0.6 + 0.4 * k}) rotate(-2deg)`;
+        ans.forEach((e, i) => { const ka = p(lt, E.cue(sc, 'score', 0.2) + 0.5 + i * 0.14, 0.35, ease.back); e.style.opacity = clamp(ka * 3); e.style.transform = `translateY(${(1 - ka) * 30}px)`; });
+        const kc = p(lt, E.cue(sc, 'concl', 99), 0.4, ease.back); concl.style.opacity = clamp(kc * 3); concl.style.transform = `scale(${0.7 + 0.3 * kc})`;
+        us(lt);
+      };
+    },
+  };
+
+  // ---- host: a fish with headphones whose mouth follows the narration ----
+  let mouth, fish, ctx, cap, dots = [], rounds = [];
+  function buildHost(el) {
+    const svg = s('svg', { viewBox: '0 0 200 300', width: 200, height: 300 });
+    fish = s('g', {});
+    mouth = s('ellipse', { cx: 150, cy: 168, rx: 12, ry: 4, fill: '#7a1f3d' });
+    fish.append(
+      s('path', { d: 'M38 150 L4 112 L10 150 L4 190 Z', fill: '#ff8a1f', stroke: '#1c1638', 'stroke-width': 6, 'stroke-linejoin': 'round' }),
+      s('ellipse', { cx: 104, cy: 150, rx: 76, ry: 60, fill: '#ffd23f', stroke: '#1c1638', 'stroke-width': 6 }),
+      s('path', { d: 'M84 96 Q104 62 132 98', fill: '#ff8a1f', stroke: '#1c1638', 'stroke-width': 6, 'stroke-linejoin': 'round' }),
+      s('path', { d: 'M88 176 Q72 200 100 204', fill: '#ff8a1f', stroke: '#1c1638', 'stroke-width': 6, 'stroke-linejoin': 'round' }),
+      s('circle', { cx: 140, cy: 132, r: 15, fill: '#fff', stroke: '#1c1638', 'stroke-width': 5 }), s('circle', { cx: 144, cy: 133, r: 6, fill: '#1c1638' }),
+      mouth,
+      s('path', { d: 'M52 122 Q104 26 158 108', fill: 'none', stroke: '#1c1638', 'stroke-width': 10, 'stroke-linecap': 'round' }),
+      s('rect', { x: 36, y: 112, width: 30, height: 56, rx: 13, fill: '#7b3ff2', stroke: '#1c1638', 'stroke-width': 6 }),
+      s('rect', { x: 148, y: 100, width: 26, height: 50, rx: 12, fill: '#7b3ff2', stroke: '#1c1638', 'stroke-width': 6 }));
+    svg.append(fish); el.append(svg);
+  }
+  function drawBg(t) {
+    const g = ctx.createLinearGradient(0, 0, 0, 1440); g.addColorStop(0, '#2a1466'); g.addColorStop(1, '#4a1f8f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1440);
+    ctx.save(); ctx.translate(540, 620); ctx.rotate(t * 0.05);                // slow sunburst
+    for (let i = 0; i < 18; i++) { ctx.rotate(Math.PI / 9); ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,0)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 1500, 0, Math.PI / 9); ctx.fill(); }
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.07)';
+    for (let y = 0; y < 1440; y += 54) for (let x = (y / 54 % 2) * 27; x < 1080; x += 54) { ctx.beginPath(); ctx.arc(x, (y + t * 12) % 1440, 3, 0, 6.283); ctx.fill(); }
+  }
+
+  E.start({
+    fonts: ['900 30px "Noto Sans SC"', '700 30px "Noto Sans SC"', '500 30px "Noto Sans SC"', '400 30px "Noto Sans SC"', '700 30px "Space Grotesk"', '500 30px "Space Grotesk"', '400 40px "ZCOOL KuaiLe"'],
+    extraText: '盲听挑战你能出来吗同一段音乐两种调音共道题记好的答案第知识卡对了几实验结论到并不会更画面先藏起只用耳朵正在播放完都是一模样0123456789HzVS',
+    layer: document.getElementById('layer'),
+    init(stage, TL) {
+      ctx = document.getElementById('bg').getContext('2d');
+      if (TL.meta && TL.meta.logo) document.getElementById('logo').textContent = TL.meta.logo;
+      buildHost(document.getElementById('host'));
+      cap = E.Captions(document.getElementById('cap'), { max: 30, wordDur: 0.12, strip: false });
+      rounds = TL.scenes.filter(x => x.type === 'round');
+      const box = document.getElementById('dots');
+      rounds.forEach((r, i) => { const d = h('div', { class: 'dot', text: i + 1 }); box.append(d); dots.push(d); });
+    },
+    scenes,
+    frame(t) {
+      drawBg(t);
+      const v = E.voice(t);
+      mouth.setAttribute('ry', (3 + 13 * v).toFixed(1)); mouth.setAttribute('rx', (11 + 3 * v).toFixed(1));
+      fish.style.transform = `translate(${Math.sin(t * 1.3) * 4}px,${Math.sin(t * 2.1) * 7 - v * 5}px) rotate(${Math.sin(t * 1.7) * 3}deg)`;
+      fish.style.transformOrigin = '100px 150px';
+      rounds.forEach((r, i) => { const rv = r.cues.reveal || r.end; dots[i].classList.toggle('done', t >= rv); dots[i].classList.toggle('cur', t >= r.start && t < rv); if (t >= rv) dots[i].textContent = '✓'; else dots[i].textContent = i + 1; });
+    },
+    transition(sc, t) {
+      const lt = t - sc.start, k = p(lt, 0, 0.4, ease.back);
+      if (sc.type === 'know') { sc.el.style.transform = `translateY(${(1 - k) * 120}px) rotate(${(1 - k) * 3}deg)`; sc.el.style.opacity = clamp(k * 3); }
+    },
+    after(t) {
+      cap(t);
+      const hint = document.getElementById('hint'); let txt = '';
+      if (!E.sayAt(t)) for (const sc of E.TL.scenes) if (t >= sc.start && t < sc.end) {
+        const st = E.stepAt(sc, t);
+        if (st && st.kind === 'clip' && sc.type === 'round') txt = sc.data.mode === 'choice' ? '♪ 仔细听' : '♪ 仔细听 ' + (st.clip === sc.data.a.clip ? 'A' : 'B');
+        else if (st && st.kind === 'clip') txt = '♪';
+        else if (st && st.kind === 'wait') txt = '选好了吗？';
+      }
+      if (hint.textContent !== txt) hint.textContent = txt;
+      hint.style.transform = `scale(${1 + 0.04 * Math.sin(t * 6)})`;
+    },
+  });
+})();
+</script></body></html>
