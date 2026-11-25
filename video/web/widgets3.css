@@ -1,0 +1,29 @@
+/* Structure of the third component set (keyboards, fretboard, scales, equal temperament, quiz table). */
+.kb-hi-b{fill:var(--c-acc);opacity:0}
+.fr-board{fill:var(--fr-wood,#3a2a1c)}
+.fr-nut{stroke:var(--c-fg);stroke-width:8}
+.fr-fret{stroke:var(--fr-metal,#b9c0c8);stroke-width:4}
+.fr-mark{fill:var(--fr-inlay,#d9d2c4);opacity:.55}
+.fr-str{stroke:var(--fr-string,#e8dfc8)}
+.fr-dot{stroke:var(--c-bg);stroke-width:4}.fr-dot.a{fill:var(--c-432)}.fr-dot.b{fill:var(--c-440)}
+.tb-bg{fill:var(--c-card)}
+g.live .tb-bg{stroke:var(--c-acc);stroke-width:3}
+g.live .wv{stroke-width:6}
+.et{font-size:34px;color:var(--c-fg)}
+.et-a{fill:var(--c-440)}.et-d{fill:var(--c-dim)}
+.et-name{display:inline-block;margin-top:.4em;font-size:1.2em;font-weight:900;padding:.3em .9em;border-radius:999px;border:3px solid var(--c-acc);color:var(--c-acc);background:var(--c-tag);transform-origin:left center}
+.et-fm{margin-top:.6em;font-family:var(--font-num);font-size:2.1em;font-weight:700;text-align:center;padding:.45em .3em;border-radius:.3em;background:var(--c-card);white-space:nowrap}
+.et-fm i{font-style:italic}.et-fm sup{font-size:.6em}
+.et-n{margin-top:.5em;text-align:center;color:var(--c-dim);font-size:.85em}
+.et-n b{color:var(--c-fg);font-family:var(--font-num)}
+.pq{font-size:34px;color:var(--c-fg)}
+.pq-video{border-radius:.5em;overflow:hidden;aspect-ratio:2.5/1;background:#000;margin-bottom:.5em}
+.pq-video img{width:100%;height:100%;object-fit:cover;display:block}
+.pq-q{font-size:1.25em;font-weight:900;line-height:1.35}
+.pq-t{width:100%;border-collapse:separate;border-spacing:.4em .4em;margin-top:.4em;font-size:1em}
+.pq-t th{font-weight:700;text-align:left;padding:.4em .2em;white-space:nowrap}
+.pq-t th small{display:block;font-size:.62em;color:var(--c-dim);font-weight:500}
+.pq-t th.k440{color:var(--c-440)}.pq-t th.k432{color:var(--c-432)}
+.pq-a{position:relative;background:var(--c-card);padding:.5em .6em;font-family:var(--font-num);font-size:1.2em;font-weight:700;border-radius:.3em;white-space:nowrap}
+.pq-a b{opacity:var(--rev,0)}
+.pq-hide{position:absolute;left:.6em;opacity:calc(1 - var(--rev,0));color:var(--c-dim)}
