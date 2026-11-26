@@ -54,6 +54,34 @@ async def _synth(text, voice, rate, out):
     return ev
 
 
+def typed(markup, cps=16):
+    """A caption that is typed in, not spoken: one token per character, cps characters a second.
+    -> dict(tokens:[{d,t0,t1,p,hl}], cues:{name:t}, chars)"""
+    tokens, cues, n = [], {}, 0
+    for a in parse(markup):
+        t = n / cps
+        for c in a['cues']:
+            cues[c] = round(t, 3)
+        if not a['d']:
+            continue
+        if a['d'] in PUNCT and tokens:
+            tokens[-1]['p'] += a['d']
+            n += 0.6                       # a short beat on punctuation, like a typist
+            continue
+        word = lambda s: all(ch.isascii() and (ch.isalnum() or ch in '.-&\'') for ch in s)
+        if tokens and not tokens[-1]['p'] and word(a['d']) and word(tokens[-1]['d']):
+            tokens[-1]['d'] += a['d']; tokens[-1]['t1'] = round(t + 1 / cps, 3); n += 1   # keep Latin words and numbers whole
+            continue
+        tokens.append(dict(d=a['d'], t0=round(t, 3), t1=round(t + 1 / cps, 3), p='', hl=a['hl']))
+        n += 1
+    return dict(tokens=tokens, cues=cues, chars=sum(len(k['d']) for k in tokens))
+
+
+def read_time(chars):
+    """Seconds a silent caption stays up: typing plus reading at about 5 characters a second."""
+    return max(2.0, 1.0 + chars / 5.0)
+
+
 def speak(markup, voice, rate):
     """Synthesise one narration block. -> dict(file, dur, tokens:[{d,t0,t1,p,hl}], cues:{name:t})"""
     atoms = parse(markup)
