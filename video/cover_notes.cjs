@@ -27,7 +27,7 @@ const spec = JSON.parse(specJson);
         background-image:repeating-linear-gradient(transparent 0 63px,rgba(80,120,200,.18) 63px 65px);background-position:0 30px}
       #cv:before{content:"";position:absolute;left:62px;top:0;bottom:0;width:2px;background:rgba(217,68,59,.45)}
       #cv .tp{position:absolute;width:150px;height:44px;background:rgba(232,216,170,.85);top:-18px}
-      #cv .top{font-size:40px;color:#d9443b;margin-bottom:14px}
+      #cv .top{font-size:40px;color:#d9443b;margin-bottom:14px;min-height:54px}
       #cv .main{font-size:${spec.size || 116}px;font-weight:700;line-height:1.2;letter-spacing:2px}
       #cv .k{background:linear-gradient(transparent 58%,rgba(255,214,70,.95) 58%,rgba(255,214,70,.95) 92%,transparent 92%)}
       #cv .sub{font-size:46px;color:#5f5a50;margin-top:22px}
