@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/900.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/space-grotesk/700.css">
+<link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/jetbrains-mono/700.css">
+<style>
+/* 听房间版：建筑图纸风。纸、细线、一支红笔；没有发光、没有粒子。 */
+:root{--paper:#eeece6;--grid:#e2dfd7;--grid2:#d6d1c6;--ink:#1d1c1a;--ink2:#5f5b53;--ink3:#a7a196;--red:#cf3c1b;--fill:#e4e0d6;
+  --font:"Noto Sans SC",sans-serif;--num:"Space Grotesk","Noto Sans SC",sans-serif;--mono:"JetBrains Mono","Noto Sans SC",monospace}
+html,body{margin:0;background:var(--paper)}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;background:var(--paper);font-family:var(--font);color:var(--ink)}
+#sheet,#layer,#fixed{position:absolute;inset:0}
+.scene{position:absolute;inset:0}
+svg.dw{position:absolute;left:0;top:0;width:1080px;height:1440px;overflow:visible}
+svg text{font-family:var(--font);fill:var(--ink)}
+svg .mono{font-family:var(--mono)}
+svg .num{font-family:var(--num)}
+.stk{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.thin{stroke-width:1.2}.ghost{stroke:var(--ink3)}.red{stroke:var(--red)}.dash{stroke-dasharray:6 7}
+/* header */
+#hno{position:absolute;left:84px;top:78px;font-family:var(--mono);font-size:26px;font-weight:700;color:var(--red);letter-spacing:2px}
+#htitle{position:absolute;left:200px;top:72px;font-size:34px;font-weight:700;letter-spacing:1px;white-space:nowrap}
+#hp{position:absolute;right:84px;top:76px;display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:22px;color:var(--ink2);letter-spacing:2px}
+#hp svg{width:40px;height:40px}
+#hrule{position:absolute;left:84px;right:84px;top:138px;height:2px;background:var(--ink)}
+/* captions: the whole sentence, typed fast, left-aligned like a note on the drawing */
+#cap{position:absolute;left:84px;right:84px;top:1076px;height:180px;font-size:44px;line-height:1.55;font-weight:500;letter-spacing:.5px}
+#cap .w{opacity:var(--k)}
+#cap .w b{font-weight:500}#cap .w i{font-style:normal}
+#cap .w.hl b{color:var(--red);font-weight:700}
+#capbar{position:absolute;left:84px;top:1062px;width:56px;height:4px;background:var(--red)}
+/* title block */
+#tb{position:absolute;right:48px;bottom:48px;width:470px;height:118px;border-left:2px solid var(--ink);border-top:2px solid var(--ink);display:grid;grid-template-columns:96px 1fr 96px 92px;grid-template-rows:1fr 1fr;font-size:20px}
+#tb div{border-right:1px solid var(--ink2);border-bottom:1px solid var(--ink2);display:flex;align-items:center;padding:0 12px;white-space:nowrap;overflow:hidden}
+#tb .k{font-family:var(--mono);font-size:16px;color:var(--ink2);letter-spacing:1px}
+#tb .v{font-weight:700}
+#tb .no{font-family:var(--mono);font-weight:700;color:var(--red)}
+#scale{position:absolute;left:84px;bottom:66px;font-family:var(--mono);font-size:18px;color:var(--ink2)}
+/* html labels used inside scenes */
+.lab{position:absolute;white-space:nowrap}
+.big{font-family:var(--num);font-weight:700;letter-spacing:-2px;line-height:1}
+.tag{font-family:var(--mono);font-size:20px;color:var(--ink2);letter-spacing:1px}
+.rname{font-size:52px;font-weight:900;letter-spacing:2px}
+.rno{font-family:var(--mono);font-size:24px;color:var(--red);font-weight:700}
+.photo{position:absolute;background:#fff;padding:10px 10px 44px;box-shadow:0 1px 0 var(--ink2),0 14px 30px rgba(40,30,10,.18)}
+.photo img{display:block;width:100%;filter:grayscale(.85) contrast(1.05) sepia(.12)}
+.photo span{position:absolute;left:12px;right:12px;bottom:10px;font-size:18px;color:var(--ink2);font-family:var(--mono)}
+.pin{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--red);left:50%;top:-6px;margin-left:-8px;box-shadow:0 2px 3px rgba(0,0,0,.25)}
+.fx{font-family:var(--num);font-size:150px;font-weight:500;letter-spacing:-3px;display:flex;align-items:center;gap:26px}
+.fx .frac{display:flex;flex-direction:column;align-items:center;line-height:1}
+.fx .frac i{display:block;width:100%;height:5px;background:var(--ink);margin:14px 0}
+.fx em{font-style:normal;color:var(--red)}
+.fxl{font-size:30px;color:var(--ink2)}
+.fxl b{color:var(--ink);font-family:var(--num);font-size:34px;margin-right:12px}
+.idx{font-size:30px;line-height:1.9;font-weight:500}
+.idx b{font-family:var(--mono);color:var(--red);font-size:24px;margin-right:24px}
+.refs{font-family:var(--mono);font-size:17px;line-height:1.6;color:var(--ink2)}
+</style></head>
+<body><div id="stage">
+<canvas id="sheet" width="1080" height="1440"></canvas>
+<div id="layer"></div>
+<div id="fixed">
+  <div id="hno"></div><div id="htitle"></div><div id="hrule"></div>
+  <div id="hp"><svg viewBox="0 0 40 40"><path class="stk" d="M7 24 V20 a13 13 0 0 1 26 0 V24" /><rect class="stk" x="5" y="23" width="7" height="12" rx="2"/><rect class="stk" x="28" y="23" width="7" height="12" rx="2"/></svg><span>戴上耳机</span></div>
+  <div id="capbar"></div><div id="cap"></div>
+  <div id="scale"></div>
+  <div id="tb"><div class="k">项目</div><div class="v">建筑声学简史</div><div class="k">图号</div><div class="no" id="tbno"></div>
+    <div class="k">图名</div><div class="v" id="tbname"></div><div class="k">绘制</div><div class="v" style="font-size:17px;padding:0 8px">子鱼说声学</div></div>
+</div>
+</div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp } = E;
+  const IO = ease.io;
+  // ---------- drawing helpers: every line is a path that draws itself on ----------
+  function Pen(svg) {
+    const items = [];
+    const add = (d, t0, dur, cls = '', extra = {}) => {
+      const el = s('path', Object.assign({ d, class: 'stk ' + cls, pathLength: 1 }, extra));
+      svg.append(el); items.push({ el, t0, dur }); return el;
+    };
+    const fill = (d, t0, dur, color) => {
+      const el = s('path', { d, fill: color, stroke: 'none' }); svg.insertBefore(el, svg.firstChild); items.push({ el, t0, dur, fill: true }); return el;
+    };
+    const update = lt => {
+      for (const it of items) {
+        if (it.t0 === Infinity) { it.el.style.opacity = 0; continue; }
+        if (it.fill) { it.el.style.opacity = p(lt, it.t0, it.dur); continue; }
+        const k = p(lt, it.t0, it.dur, IO);
+        it.el.style.opacity = k > 0.001 ? 1 : 0;
+        if (it.el.classList.contains('dash')) { it.el.style.strokeDasharray = ''; it.el.style.clipPath = ''; it.el.style.opacity = k; }
+        else { it.el.style.strokeDasharray = '1 1'; it.el.style.strokeDashoffset = (1 - k).toFixed(4); }
+      }
+    };
+    return { add, fill, update, items };
+  }
+  const M = (pts, close) => pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('') + (close ? 'Z' : '');
+  const fade = (el, k, dy = 0) => { el.style.opacity = k; el.style.transform = dy ? `translateY(${((1 - k) * dy).toFixed(1)}px)` : ''; };
+  const label = (parent, x, y, html, cls = 'tag', style = '') => { const e = h('div', { class: 'lab ' + cls, html, style: `left:${x}px;top:${y}px;${style}` }); parent.append(e); return e; };
+  const C30 = Math.cos(Math.PI / 6), S30 = 0.5;
+  // isometric projection fitted into a box
+  function isoFit(W, D, H, box) {
+    const pw = (W + D) * C30, ph = (W + D) * S30 + H;
+    const sc = Math.min(box.w / pw, box.h / ph);
+    const ox = box.x + box.w / 2 - (W - D) * C30 * sc / 2;
+    const oy = box.y + box.h / 2 + (H * sc - (W + D) * S30 * sc) / 2;
+    const P = (x, y, z) => [ox + (x - y) * C30 * sc, oy + (x + y) * S30 * sc - z * sc];
+    P.sc = sc; return P;
+  }
+  // ---------- one room drawing (cut-away box, furniture, scale figure) ----------
+  function roomStrokes(pen, R, P, t0) {
+    const [W, D, H] = R.dims; let t = t0;
+    const seg = (pts, dur = 0.35, cls = '', close) => { pen.add(M(pts.map(q => P(...q)), close), t, dur, cls); t += dur * 0.55; };
+    const face = (pts, c) => pen.fill(M(pts.map(q => P(...q)), true), t0 + 0.5, 0.8, c);
+    face([[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]], 'rgba(60,50,35,.07)');
+    face([[0, 0, 0], [W, 0, 0], [W, 0, H], [0, 0, H]], 'rgba(60,50,35,.035)');
+    face([[0, 0, 0], [0, D, 0], [0, D, H], [0, 0, H]], 'rgba(60,50,35,.11)');
+    seg([[0, 0, 0], [W, 0, 0], [W, D, 0], [0, D, 0]], 0.7, '', true);
+    seg([[0, 0, 0], [0, 0, H]], 0.3); seg([[W, 0, 0], [W, 0, H], [0, 0, H], [0, D, H], [0, D, 0]], 0.7);
+    const thin = 'thin';
+    if (R.key === 'anechoic') {
+      for (let z = 0.4; z < H - 0.2; z += 0.55) { const pts = []; for (let x = 0; x <= W + 1e-6; x += 0.3) pts.push([x, 0, z + ((x / 0.3) % 2 ? 0.28 : 0)]); seg(pts, 0.22, thin); }
+      for (let z = 0.4; z < H - 0.2; z += 0.55) { const pts = []; for (let y = 0; y <= D + 1e-6; y += 0.3) pts.push([0, y, z + ((y / 0.3) % 2 ? 0.28 : 0)]); seg(pts, 0.22, thin); }
+      for (let x = 0.5; x < W; x += 0.5) seg([[x, 0, 0.9], [x, D, 0.9]], 0.08, 'thin ghost');
+      for (let y = 0.5; y < D; y += 0.5) seg([[0, y, 0.9], [W, y, 0.9]], 0.08, 'thin ghost');
+    } else if (R.key === 'bedroom') {
+      seg([[0.2, 0.2, 0], [0.2, 0.2, 0.5], [2.2, 0.2, 0.5], [2.2, 1.8, 0.5], [0.2, 1.8, 0.5], [0.2, 0.2, 0.5]], 0.5, thin);
+      seg([[2.2, 1.8, 0.5], [2.2, 1.8, 0], [2.2, 0.2, 0], [2.2, 0.2, 0.5]], 0.3, thin);
+      seg([[0, 2.2, 1.0], [0, 3.1, 1.0], [0, 3.1, 2.2], [0, 2.2, 2.2]], 0.35, thin, true);
+      seg([[0, 2.65, 1.0], [0, 2.65, 2.2]], 0.15, thin);
+      seg([[3.0, 0, 0], [3.0, 0, 2.1], [3.9, 0, 2.1], [3.9, 0, 0]], 0.3, thin);
+    } else if (R.key === 'classroom') {
+      seg([[2, 0, 1.0], [7, 0, 1.0], [7, 0, 2.3], [2, 0, 2.3]], 0.35, thin, true);
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) { const x = 2.2 + c * 2.2, y = 2.0 + r * 1.2; seg([[x, y, 0.75], [x + 1.4, y, 0.75], [x + 1.4, y + 0.5, 0.75], [x, y + 0.5, 0.75]], 0.06, thin, true); }
+      seg([[0, 1.5, 1.0], [0, 3.0, 1.0], [0, 3.0, 2.4], [0, 1.5, 2.4]], 0.25, thin, true);
+      seg([[0, 4.2, 1.0], [0, 5.7, 1.0], [0, 5.7, 2.4], [0, 4.2, 2.4]], 0.25, thin, true);
+    } else if (R.key === 'boston') {
+      seg([[0, 2, 0], [0, 2, 1.2], [8, 2, 1.2], [8, D - 2, 1.2], [0, D - 2, 1.2]], 0.5, thin);
+      for (let y = 3; y < D - 3; y += 1.2) seg([[0, y, 4], [0, y, 4 + 7 + Math.sin(y) * 1.5]], 0.04, thin);
+      for (const z of [7, 11.5]) seg([[8, 0, z], [W, 0, z]], 0.3, thin);
+      for (const z of [7, 11.5]) seg([[0, D, z], [0, D, z]], 0.01, thin);
+      for (let x = 11; x < W; x += 1.6) seg([[x, 1.5, 0], [x, D - 1.5, 0]], 0.04, 'thin ghost');
+      for (let x = 2; x < W; x += 4.5) seg([[x, 0, H], [x, D, H]], 0.06, 'thin ghost');
+    } else if (R.key === 'cathedral') {
+      for (let x = 6; x < W - 4; x += 9) {
+        const a = [], w = 3.2, top = 22;
+        for (let k = 0; k <= 16; k++) { const u = k / 16, ang = u * Math.PI / 2; a.push([x - w + w * (1 - Math.cos(ang)), 0, 6 + (top - 6) * Math.sin(ang) ** 0.9]); }
+        for (let k = 0; k <= 16; k++) { const u = k / 16, ang = (1 - u) * Math.PI / 2; a.push([x + w - w * (1 - Math.cos(ang)), 0, 6 + (top - 6) * Math.sin(ang) ** 0.9]); }
+        seg([[x - w, 0, 0], ...a, [x + w, 0, 0]], 0.18, thin);
+      }
+      const rw = []; for (let k = 0; k <= 40; k++) { const a = k / 40 * 2 * Math.PI; rw.push([0, D / 2 + 6 * Math.cos(a), 22 + 6 * Math.sin(a)]); }
+      seg(rw, 0.5, thin);
+      for (let x = 12; x < W; x += 9) seg([[x, 3, 0], [x, D - 3, 0]], 0.05, 'thin ghost');
+    }
+    // scale figure, 1.7 m
+    const fx = R.key === 'anechoic' ? W * 0.55 : W * 0.7, fy = D * 0.72;
+    seg([[fx, fy, 0], [fx, fy, 1.45]], 0.2, 'red'); seg([[fx - 0.001, fy, 1.6], [fx + 0.001, fy, 1.6]], 0.05, 'red');
+    return t;
+  }
+
+  // ---------- the sheet: paper grid ----------
+  function drawSheet() {
+    const c = document.getElementById('sheet').getContext('2d');
+    c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paper'); c.fillRect(0, 0, 1080, 1440);
+    for (let x = 48; x <= 1032; x += 24) { c.strokeStyle = (x - 48) % 120 ? 'rgba(205,199,186,.45)' : 'rgba(190,183,168,.7)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 0.5, 48); c.lineTo(x + 0.5, 1392); c.stroke(); }
+    for (let y = 48; y <= 1392; y += 24) { c.strokeStyle = (y - 48) % 120 ? 'rgba(205,199,186,.45)' : 'rgba(190,183,168,.7)'; c.beginPath(); c.moveTo(48, y + 0.5); c.lineTo(1032, y + 0.5); c.stroke(); }
+    c.strokeStyle = '#1d1c1a'; c.lineWidth = 2.5; c.strokeRect(36, 36, 1008, 1368); c.lineWidth = 1; c.strokeRect(48, 48, 984, 1344);
+    // paper fibre: faint deterministic speckle so the sheet is not flat
+    const r = E.rng(5); for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(120,105,80,${(r() * 0.05).toFixed(3)})`; c.fillRect(r() * 1080, r() * 1440, 1 + r() * 2, 1); }
+  }
+
+  // ---------- decay chart (shared by the rooms scene) ----------
+  const CH = { x: 150, y: 742, w: 820, h: 250, tmax: 7, dbmin: -66 };
+  const cx = tt => CH.x + clamp(tt / CH.tmax) * CH.w, cy = db => CH.y + clamp(db / CH.dbmin) * CH.h;
+  function chartFrame(svg, pen, t0) {
+    pen.add(M([[CH.x, CH.y - 14], [CH.x, CH.y + CH.h], [CH.x + CH.w + 14, CH.y + CH.h]]), t0, 0.6);
+    for (let db = -10; db >= -60; db -= 10) pen.add(M([[CH.x, cy(db)], [CH.x + CH.w, cy(db)]]), t0 + 0.3, 0.5, 'thin ghost' + (db === -60 ? '' : ' dash'));
+    for (let k = 1; k <= 7; k++) pen.add(M([[cx(k), CH.y + CH.h], [cx(k), CH.y + CH.h + 10]]), t0 + 0.4, 0.2, 'thin');
+    const g = s('g', { class: 'chartlab' });
+    g.append(s('text', { x: CH.x - 16, y: cy(0) + 7, 'text-anchor': 'end', class: 'mono', 'font-size': 18, fill: 'var(--ink2)', text: '0' }));
+    for (let db = -20; db >= -60; db -= 20) g.append(s('text', { x: CH.x - 16, y: cy(db) + 7, 'text-anchor': 'end', class: 'mono', 'font-size': 18, fill: 'var(--ink2)', text: db }));
+    for (let k = 1; k <= 7; k++) g.append(s('text', { x: cx(k), y: CH.y + CH.h + 36, 'text-anchor': 'middle', class: 'mono', 'font-size': 18, fill: 'var(--ink2)', text: k }));
+    g.append(s('text', { x: CH.x, y: CH.y - 26, class: 'mono', 'font-size': 18, fill: 'var(--ink2)', text: '声压级 dB  ·  拍手之后的衰减（示意）' }));
+    g.append(s('text', { x: CH.x + CH.w, y: CH.y + CH.h + 36, 'text-anchor': 'end', class: 'mono', 'font-size': 18, fill: 'var(--ink2)', text: '秒' }));
+    svg.append(g); return g;
+  }
+
+  // ---------- caption renderer: the whole sentence, typed in ----------
+  function caption(t) {
+    const st = E.sayAt(t), root = document.getElementById('cap');
+    if (!st) { root.style.opacity = 0; if (root._st) { root.replaceChildren(); root._st = null; } return; }
+    if (root._st !== st) {
+      root._st = st;
+      root._spans = st.tokens.map(tk => { const sp = h('span', { class: 'w' + (tk.hl ? ' hl' : '') }, h('b', { text: tk.d }), tk.p ? h('i', { text: tk.p }) : null); sp._tk = tk; return sp; });
+      root.replaceChildren(...root._spans);
+    }
+    root.style.opacity = 1 - p(t, st.end + 0.05, 0.2);
+    for (const sp of root._spans) sp.style.setProperty('--k', p(t, sp._tk.t0, 0.08).toFixed(3));
+  }
+
+  // ---------- scenes ----------
+  const scenes = {
+    open: (sc, el) => {
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg);
+      const pen = Pen(svg);
+      // a hand: two strokes; the clap: rings on the floor plan of an empty room
+      const P = isoFit(10, 8, 3.2, { x: 140, y: 230, w: 800, h: 560 });
+      const end = roomStrokes(pen, { key: 'empty', dims: [10, 8, 3.2] }, P, 0.3);
+      const rings = s('g'); svg.append(rings);
+      const ringEls = Array.from({ length: 7 }, () => { const e = s('ellipse', { class: 'stk red', fill: 'none' }); rings.append(e); return e; });
+      const c0 = P(5, 4, 0);
+      const k1 = label(el, 84, 860, '拍手 ×1 · 普通教室（模拟）', 'tag');
+      return lt => {
+        pen.update(lt);
+        const tc = E.cue(sc, 'clip_c_open', 99);
+        ringEls.forEach((e, i) => {
+          const u = (lt - tc - i * 0.09) / 1.4;
+          if (u < 0 || u > 1) { e.style.opacity = 0; return; }
+          const r = 20 + u * 520; e.setAttribute('cx', c0[0]); e.setAttribute('cy', c0[1]); e.setAttribute('rx', r * C30 * 1.15); e.setAttribute('ry', r * S30 * 1.15);
+          e.style.opacity = (1 - u) ** 1.6 * (i ? 0.6 : 1); e.style.strokeWidth = i ? 1.2 : 2.4;
+        });
+        fade(k1, p(lt, tc, 0.3) * (1 - p(lt, tc + 2.2, 0.4)));
+      };
+    },
+
+    rooms: (sc, el) => {
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg);
+      const chartPen = Pen(svg);
+      chartFrame(svg, chartPen, 0.2);
+      const rooms = sc.data.rooms;
+      const groups = rooms.map((R, i) => {
+        const g = s('g'); svg.append(g); const pen = Pen(g);
+        const t0 = E.cue(sc, 'r' + i, 1) + 0.05;
+        const P = isoFit(R.dims[0], R.dims[1], R.dims[2], { x: 100, y: 340, w: 560, h: 350 });
+        roomStrokes(pen, R, P, t0);
+        const name = h('div', { class: 'lab', style: 'left:84px;top:176px' }, h('div', { class: 'rno', text: R.no + ' / 05' }), h('div', { class: 'rname', text: R.name }), h('div', { class: 'tag', text: R.note, style: 'margin-top:6px' }));
+        el.append(name);
+        const big = h('div', { class: 'lab big', style: 'right:96px;top:330px;font-size:150px;text-align:right' });
+        const unit = h('div', { class: 'lab tag', style: 'right:100px;top:300px;text-align:right', text: '混响时间 T · 秒' });
+        el.append(big, unit);
+        // decay line in the chart
+        const line = s('path', { class: 'stk red', d: '' }); svg.append(line);
+        const tag = s('text', { class: 'mono', 'font-size': 20, fill: 'var(--ink2)', x: CH.x + CH.w - 200, y: CH.y + 14 + i * 30, text: '' }); svg.append(tag);
+        const sw = s('path', { class: 'stk', d: M([[CH.x + CH.w - 240, CH.y + 7 + i * 30], [CH.x + CH.w - 212, CH.y + 7 + i * 30]]) }); svg.append(sw);
+        const scaleM = P.sc;
+        tag.textContent = R.name + (R.key === 'anechoic' ? '  ≈ 0 s' : '  ' + R.Tlabel + ' s');
+        return { R, g, pen, name, big, unit, line, tag, sw, t0, scaleM };
+      });
+      const sixty = s('path', { class: 'stk red', d: M([[CH.x, cy(-60)], [CH.x + CH.w, cy(-60)]]) }); svg.append(sixty);
+      const sixtyT = h('div', { class: 'lab', style: `left:${CH.x + CH.w - 330}px;top:${cy(-60) - 46}px;font-family:var(--mono);font-size:22px;color:var(--red);font-weight:700`, text: '−60 dB：能量剩百万分之一' }); el.append(sixtyT);
+      const scaleEl = document.getElementById('scale');
+      return lt => {
+        chartPen.update(lt);
+        const cur = groups.reduce((a, G, i) => (lt >= G.t0 - 0.05 ? i : a), -1);
+        groups.forEach((G, i) => {
+          const on = i === cur;
+          const kin = p(lt, G.t0 - 0.05, 0.3), kout = i < cur ? p(lt, groups[i + 1].t0 - 0.35, 0.3) : 0;
+          G.g.style.opacity = on ? 1 : 0; if (on) G.pen.update(lt);
+          fade(G.name, on ? kin : 0, 14);
+          // decay line, drawn in real time from the first clap
+          const tc = E.cue(sc, 'clip_c_' + G.R.key, Infinity);
+          const T = Math.max(G.R.T, 0.03), tau = clamp(lt - tc, 0, T);
+          if (lt < tc) { G.line.style.opacity = 0; G.tag.style.opacity = 0; G.sw.style.opacity = 0; } else {
+            const x1 = cx(tau), y1 = cy(-60 * tau / T + (G.R.key === 'anechoic' ? 0 : 0));
+            const dd = G.R.key === 'anechoic' ? M([[cx(0), cy(0)], [cx(0.02), cy(-66)]]) : M([[cx(0), cy(0)], [x1, y1]]);
+            G.line.setAttribute('d', dd);
+            G.line.style.opacity = 1;
+            G.line.classList.toggle('red', i === cur); G.line.classList.toggle('ghost', i !== cur);
+            G.line.style.strokeWidth = i === cur ? 3.2 : 2;
+            const kt = p(lt, tc + Math.min(T, 1.2), 0.3);
+            G.tag.style.opacity = kt; G.sw.style.opacity = kt;
+            G.tag.style.fill = i === cur ? 'var(--red)' : 'var(--ink2)'; G.sw.style.stroke = i === cur ? 'var(--red)' : 'var(--ink3)';
+          }
+          // the big number counts up while the clap decays
+          const show = on && lt >= tc - 0.02;
+          const val = G.R.key === 'anechoic' ? '≈ 0' : (G.R.T * clamp((lt - tc) / Math.max(G.R.T, 0.01))).toFixed(1);
+          G.big.textContent = G.R.key === 'cathedral' && lt - tc >= 6 ? '6+' : val;
+          fade(G.big, show ? 1 : 0); fade(G.unit, on ? kin : 0);
+        });
+        if (cur >= 0) scaleEl.textContent = '比例尺：图中红色小人 = 1.7 m';
+        const kd = p(lt, E.cue(sc, 'def', 99), 0.5), k6 = p(lt, E.cue(sc, 'e6', 99), 0.4);
+        sixty.style.opacity = kd; sixty.style.strokeWidth = 2.6; fade(sixtyT, k6);
+      };
+    },
+
+    fogg: (sc, el) => {
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg);
+      const pen = Pen(svg);
+      // plan of a lecture room: walls, a lectern, curved rows of seats (schematic, not the real floor plan)
+      const ox = 540, oy = 300, R0 = 120;
+      pen.add(M([[150, 230], [930, 230], [930, 860], [150, 860]], true), 0.2, 1.0);
+      pen.add(M([[480, 262], [600, 262], [600, 292], [480, 292]], true), 0.8, 0.3);
+      const seats = [];
+      for (let r = 0; r < 8; r++) {
+        const rad = R0 + 40 + r * 50, a0 = Math.PI * 0.24, a1 = Math.PI * 0.76, pts = [];
+        for (let k = 0; k <= 40; k++) { const a = lerp(a0, a1, k / 40); pts.push([ox + rad * Math.cos(a), oy + rad * Math.sin(a)]); }
+        pen.add(M(pts), 1.0 + r * 0.1, 0.5, 'thin');
+        const n = 8 + r * 2;
+        for (let k = 0; k < n; k++) { const a = lerp(a0 + 0.03, a1 - 0.03, (k + 0.5) / n); seats.push({ x: ox + (rad - 18) * Math.cos(a), y: oy + (rad - 18) * Math.sin(a), a, r }); }
+      }
+      const rr = E.rng(3); seats.sort(() => rr() - 0.5);
+      const cush = seats.map(q => { const e = s('rect', { x: -11, y: -7, width: 22, height: 14, rx: 3, fill: 'var(--red)', transform: `translate(${q.x.toFixed(1)},${q.y.toFixed(1)}) rotate(${(q.a * 180 / Math.PI - 90).toFixed(1)})` }); svg.append(e); return e; });
+      const lab1 = label(el, 150, 176, '讲堂平面（示意） · 1895', 'tag');
+      const yr = h('div', { class: 'lab big', style: 'left:150px;top:880px;font-size:120px', text: '1895' }); el.append(yr);
+      // rings from the lectern; how long they linger depends on the room
+      svg.append(s('clipPath', { id: 'roomclip' }, s('rect', { x: 151, y: 231, width: 778, height: 628 })));
+      const ringG = s('g', { 'clip-path': 'url(#roomclip)' }); svg.append(ringG);
+      const ringEls = Array.from({ length: 26 }, () => { const e = s('circle', { class: 'stk red', fill: 'none', cx: 540, cy: 290 }); ringG.append(e); return e; });
+      // Sabine's kit: organ pipe, stopwatch, ear
+      const kit = s('g', { transform: 'translate(640,872)' }); svg.append(kit); const kp = Pen(kit);
+      kp.add(M([[0, 0], [34, 0], [34, 140], [0, 140]], true), 0, 0.4); kp.add(M([[0, 112], [34, 104]]), 0.2, 0.2); kp.add(M([[10, 140], [17, 160], [24, 140]]), 0.3, 0.2);
+      const sw = []; for (let k = 0; k <= 40; k++) { const a = k / 40 * 2 * Math.PI; sw.push([150 + 52 * Math.cos(a), 92 + 52 * Math.sin(a)]); }
+      kp.add(M(sw), 0.3, 0.5); kp.add(M([[150, 40], [150, 28]]), 0.6, 0.1); kp.add(M([[138, 24], [162, 24]]), 0.65, 0.1);
+      const hand = s('path', { class: 'stk red', d: 'M150 92 L150 52' }); kit.append(hand);
+      kp.add('M262 60 C262 30, 310 26, 316 64 C320 92, 294 98, 292 122 C290 140, 268 142, 266 130 M282 64 C282 54, 298 54, 298 70 C298 80, 288 82, 288 92', 0.5, 0.6);
+      const kitT = [label(el, 548, 1036, '512 Hz 管风琴管', 'tag'), label(el, 770, 1036, '秒表', 'tag'), label(el, 908, 1036, '耳朵', 'tag')];
+      const simL = label(el, 690, 176, '模拟：坐垫之前 / 之后', 'tag', 'color:var(--red)');
+      const Tlab = h('div', { class: 'lab', style: 'right:150px;top:250px;text-align:right' }, h('div', { class: 'tag', text: '混响时间' }), h('div', { class: 'big', style: 'font-size:84px', text: '5.5 s' }));
+      const Tlab2 = h('div', { class: 'lab', style: 'right:150px;top:250px;text-align:right' }, h('div', { class: 'tag', text: '混响时间' }), h('div', { class: 'big', style: 'font-size:84px;color:var(--red)', text: '更短' }));
+      el.append(Tlab, Tlab2);
+      return lt => {
+        pen.update(lt); fade(lab1, p(lt, 0.2, 0.5)); fade(yr, p(lt, E.cue(sc, 'yr', 0), 0.6) * (1 - p(lt, E.cue(sc, 'time', 99) - 0.4, 0.4)), 20);
+        const kc0 = E.cue(sc, 'sab', 99) + 1.2, kc1 = E.cue(sc, 'after', 99);
+        cush.forEach((c, i) => { const u = (i + 0.5) / cush.length; c.style.opacity = p(lt, lerp(kc0, kc1, u), 0.15); });
+        const t1 = E.cue(sc, 'clip_s_fogg', 999), d1 = 9, t2 = E.cue(sc, 'clip_s_fogg2', 999);
+        const playing = (lt >= t1 && lt < t1 + 9.5) ? [t1, 5.5, 3.0] : (lt >= t2 && lt < t2 + 6) ? [t2, 1.2, 3.0] : null;
+        ringEls.forEach((e, i) => {
+          if (!playing) { e.style.opacity = 0; return; }
+          const [ts, T, speak] = playing, born = ts + (i / ringEls.length) * speak * 1.05, age = lt - born;
+          if (age < 0 || age > T) { e.style.opacity = 0; return; }
+          e.setAttribute('r', 20 + age * 260 % 640); e.style.opacity = (1 - age / T) ** 1.2 * 0.8; e.style.strokeWidth = 1.6;
+        });
+        kp.update(lt - E.cue(sc, 'time', 99));
+        kitT.forEach((k, i) => fade(k, p(lt, E.cue(sc, 'time', 99) + 0.3 + i * 0.2, 0.3)));
+        const ktime = E.cue(sc, 'time', 99), ang = clamp(lt - ktime - 0.6, 0, 99) * 1.3;
+        hand.setAttribute('d', `M150 92 L${(150 + 40 * Math.sin(ang)).toFixed(1)} ${(92 - 40 * Math.cos(ang)).toFixed(1)}`); hand.style.opacity = p(lt, ktime + 0.6, 0.2);
+        fade(Tlab, p(lt, E.cue(sc, 'mix', 99), 0.4) * (1 - p(lt, kc1, 0.3)));
+        fade(Tlab2, p(lt, t2 + 0.8, 0.4)); fade(simL, p(lt, t1 - 0.2, 0.4));
+      };
+    },
+
+    formula: (sc, el) => {
+      const fx = h('div', { class: 'lab fx', style: 'left:84px;top:250px' }, h('span', { text: 'T' }), h('span', { text: '=', style: 'font-size:110px;color:var(--ink2)' }), h('span', { text: '0.16' }),
+        h('span', { class: 'frac' }, h('em', { text: 'V', class: 'fv' }), h('i'), h('em', { text: 'A', class: 'fa' })));
+      el.append(fx);
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg); const pen = Pen(svg);
+      // V: a room box; A: a patch of absorber (hatched)
+      const P = isoFit(6, 5, 3, { x: 120, y: 640, w: 340, h: 300 });
+      roomStrokes(pen, { key: 'box', dims: [6, 5, 3] }, P, 99);
+      const vt = E.cue(sc, 'v', 99), at = E.cue(sc, 'a', 99);
+      pen.items.forEach(it => { it.t0 = vt + (it.t0 - 99); });
+      for (let k = 0; k < 9; k++) pen.add(M([[620 + k * 36, 700], [620 + k * 36 + 120, 820]]), at + 0.2 + k * 0.05, 0.15, 'red');
+      pen.add(M([[620, 700], [900, 700], [900, 820], [620, 820]], true), at, 0.5);
+      pen.add(M([[700, 555], [355, 690]]), vt, 0.4, 'thin red'); pen.add(M([[770, 610], [760, 690]]), at, 0.4, 'thin red');
+      const lv = label(el, 120, 960, '<b>V</b>房间体积 · m³', 'fxl'), la = label(el, 620, 960, '<b>A</b>吸声量 · m²<br><span style="font-size:24px">= 表面积 S × 吸声系数 α</span>', 'fxl');
+      const lt0 = label(el, 84, 190, '<b>T</b>混响时间 · 秒', 'fxl');
+      return lt => {
+        const k = p(lt, E.cue(sc, 'f', 0) + 0.2, 0.6); fade(fx, k, 20); fade(lt0, k);
+        pen.update(lt); fade(lv, p(lt, vt + 0.3, 0.4)); fade(la, p(lt, at + 0.3, 0.4));
+        fx.querySelector('.fv').style.color = lt >= vt ? 'var(--red)' : 'var(--ink)'; fx.querySelector('.fa').style.color = lt >= at ? 'var(--red)' : 'var(--ink)';
+      };
+    },
+
+    music: (sc, el) => {
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg);
+      const a = s('g'), b = s('g'); svg.append(a, b);
+      const pa = Pen(a), pb = Pen(b);
+      roomStrokes(pa, { key: 'anechoic', dims: [6, 5, 4.5] }, isoFit(6, 5, 4.5, { x: 100, y: 280, w: 400, h: 330 }), E.cue(sc, 'q', 0) + 0.8);
+      roomStrokes(pb, { key: 'boston', dims: [38, 23, 19] }, isoFit(38, 23, 19, { x: 560, y: 280, w: 420, h: 330 }), E.cue(sc, 'h', 99) - 0.6);
+      const la = label(el, 110, 640, '消声室 · T ≈ 0', 'tag'), lb = label(el, 580, 640, '音乐厅 · T ≈ 1.9 s', 'tag');
+      // mini decays under each room
+      const mk = x => { const e = s('path', { class: 'stk red' }); svg.append(e); return e; };
+      const da = mk(), db = mk();
+      const play = (lt, t0, d) => lt >= t0 && lt < t0 + d;
+      const bars = [0, 1].map(j => { const g = s('g'); svg.append(g); return Array.from({ length: 20 }, (_, i) => { const r = s('rect', { x: (j ? 580 : 110) + i * 19, y: 700, width: 12, height: 2, fill: 'var(--ink)' }); g.append(r); return r; }); });
+      const photo = h('div', { class: 'photo', style: 'left:600px;top:190px;width:360px;transform:rotate(1.6deg)' }, h('img', { src: sc.data.boston }), h('span', { text: '参考照片：波士顿交响乐大厅' }), h('div', { class: 'pin' }));
+      el.append(photo);
+      const yr = h('div', { class: 'lab big', style: 'left:120px;top:780px;font-size:120px', text: '1900' }); el.append(yr);
+      return lt => {
+        const bos = E.cue(sc, 'bos', 99);
+        const vis = 1 - p(lt, bos - 0.3, 0.4);
+        a.style.opacity = vis; b.style.opacity = vis; pa.update(lt); pb.update(lt);
+        fade(la, p(lt, E.cue(sc, 'q', 0) + 1, 0.4) * vis); fade(lb, p(lt, E.cue(sc, 'h', 99), 0.4) * vis);
+        [['m_dry', 0], ['m_hall', 1]].forEach(([name, j]) => {
+          const st = E.cue(sc, 'clip_' + name, 999), clipd = E.TL.clips[name];
+          const on = play(lt, st, clipd.d), bnd = on ? E.bandsAt(clipd, lt - st) : [];
+          bars[j].forEach((r, i) => { const v = on ? (bnd[i] || 0) / 99 : 0; r.setAttribute('height', (2 + v * 120).toFixed(1)); r.setAttribute('y', (820 - v * 120).toFixed(1)); r.style.opacity = vis * (lt >= st - 0.3 ? 1 : 0.0); r.style.fill = on ? 'var(--red)' : 'var(--ink3)'; });
+        });
+        fade(photo, p(lt, bos, 0.6), 30); fade(yr, p(lt, bos + 0.2, 0.5), 16);
+      };
+    },
+
+    aural: (sc, el) => {
+      const svg = s('svg', { class: 'dw', viewBox: '0 0 1080 1440' }); el.append(svg);
+      const A = s('g'), B = s('g'); svg.append(A, B); const pa = Pen(A), pb = Pen(B);
+      const tthree = E.cue(sc, 'three', 99), tmove = E.cue(sc, 'move', 99), tcar = E.cue(sc, 'clip_car', 999);
+      // part 1: source -> paths in a room -> two ears (plan view)
+      pa.add(M([[140, 300], [940, 300], [940, 960], [140, 960]], true), 0.3, 0.9);
+      const src = [270, 480], lis = [770, 780];
+      pa.add('M250 460 L270 460 L300 435 L300 525 L270 500 L250 500 Z', tthree, 0.4);
+      pa.add('M318 455 Q332 480 318 505 M334 442 Q356 480 334 518', tthree + 0.2, 0.3, 'thin');
+      const rays = [[[300, 480], [770, 780]], [[300, 480], [940, 620], [770, 780]], [[300, 480], [520, 300], [770, 780]], [[300, 480], [140, 760], [520, 960], [770, 780]], [[300, 480], [700, 960], [940, 880], [770, 780]], [[300, 480], [140, 360], [660, 300], [940, 760], [770, 780]]];
+      rays.forEach((r, i) => pa.add(M(r), tthree + 0.8 + i * 0.18, 0.6, i ? 'thin red' : 'red'));
+      const head = []; for (let k = 0; k <= 40; k++) { const a = k / 40 * 2 * Math.PI; head.push([lis[0] + 40 * Math.cos(a), lis[1] + 46 * Math.sin(a)]); }
+      pa.add(M(head), tthree + 2.4, 0.5); pa.add(M([[lis[0] - 12, lis[1] - 44], [lis[0], lis[1] - 64], [lis[0] + 12, lis[1] - 44]]), tthree + 2.7, 0.2);
+      pa.add(`M${lis[0] - 40} ${lis[1] - 12} q-14 12 0 24 M${lis[0] + 40} ${lis[1] - 12} q14 12 0 24`, tthree + 2.9, 0.3);
+      const l1 = label(el, 214, 550, '声源', 'tag'), l2 = label(el, 600, 262, '传播：反射、衍射、散射', 'tag'), l3 = label(el, 690, 850, '接收者：两只耳朵', 'tag');
+      const title = h('div', { class: 'lab', style: 'left:84px;top:162px' }, h('div', { class: 'rname', text: '可听化' }), h('div', { class: 'tag', text: 'AURALIZATION · 与可视化相对', style: 'margin-top:4px' }));
+      el.append(title);
+      // part 2: a street in plan, a car passing, a listener with two ears
+      const ry0 = 470, ry1 = 590, lx = 540, ly = 740;
+      pb.add(M([[90, ry0], [990, ry0]]), tmove + 0.2, 0.6); pb.add(M([[90, ry1], [990, ry1]]), tmove + 0.3, 0.6);
+      pb.add(M([[90, (ry0 + ry1) / 2], [990, (ry0 + ry1) / 2]]), tmove + 0.4, 0.6, 'thin dash');
+      const hh = []; for (let k = 0; k <= 40; k++) { const a = k / 40 * 2 * Math.PI; hh.push([lx + 34 * Math.cos(a), ly + 40 * Math.sin(a)]); }
+      pb.add(M(hh), tmove + 0.8, 0.4); pb.add(M([[lx - 10, ly - 38], [lx, ly - 56], [lx + 10, ly - 38]]), tmove + 1.0, 0.2);
+      const earL = s('path', { class: 'stk', d: `M${lx - 34} ${ly - 10} q-14 10 0 20` }), earR = s('path', { class: 'stk', d: `M${lx + 34} ${ly - 10} q14 10 0 20` }); B.append(earL, earR);
+      const car = s('g'); B.append(car);
+      car.append(s('rect', { x: -70, y: -30, width: 140, height: 60, rx: 14, class: 'stk', fill: 'var(--paper)' }), s('path', { class: 'stk thin', d: 'M-20 -26 L-20 26 M30 -26 L30 26' }));
+      const ll = label(el, lx - 120, ly + 64, 'L 左耳            右耳 R', 'tag', 'width:240px;text-align:center');
+      const dist = label(el, lx + 18, 620, '4 m', 'tag');
+      const wave = s('g'); B.append(wave);
+      const waves = Array.from({ length: 6 }, () => { const c = s('circle', { class: 'stk red thin', fill: 'none' }); wave.append(c); return c; });
+      const road = label(el, 90, 420, '街道平面（示意） · 车速 50 km/h', 'tag');
+      return lt => {
+        const p1 = 1 - p(lt, tmove - 0.3, 0.4);
+        A.style.opacity = p1; pa.update(lt);
+        fade(title, p(lt, E.cue(sc, 'name', 0), 0.5) * p1, 14);
+        fade(l1, p(lt, tthree + 0.4, 0.3) * p1); fade(l2, p(lt, tthree + 1.4, 0.3) * p1); fade(l3, p(lt, tthree + 2.8, 0.3) * p1);
+        const p2 = p(lt, tmove - 0.1, 0.4); B.style.opacity = p2; pb.update(lt);
+        fade(ll, p(lt, tmove + 1.2, 0.3)); fade(road, p(lt, tmove + 0.3, 0.3)); fade(dist, p(lt, tmove + 1.2, 0.3));
+        // car position follows the clip: x = v·(t − d/2), 50 km/h, 6 s, drawn at 20 px per metre
+        const cd = E.TL.clips.car.d, u = clamp((lt - tcar) / cd, 0, 1), xm = (u - 0.5) * cd * 50 / 3.6;
+        const px = lx + xm * 20; car.setAttribute('transform', `translate(${px.toFixed(1)},${(ry0 + ry1) / 2 - 28})`);
+        car.style.opacity = lt < tcar - 0.2 ? 0 : lt > tcar + cd + 0.3 ? 0 : 1;
+        const az = Math.atan2(xm, 4), on = lt >= tcar && lt <= tcar + cd;
+        earL.style.stroke = on && az < -0.15 ? 'var(--red)' : 'var(--ink)'; earR.style.stroke = on && az > 0.15 ? 'var(--red)' : 'var(--ink)';
+        earL.style.strokeWidth = on && az < -0.15 ? 4 : 2; earR.style.strokeWidth = on && az > 0.15 ? 4 : 2;
+        waves.forEach((c, i) => { const a = ((lt * 1.6 + i / waves.length) % 1); c.setAttribute('cx', px.toFixed(1)); c.setAttribute('cy', (ry0 + ry1) / 2 - 28); c.setAttribute('r', 40 + a * 220); c.style.opacity = on ? (1 - a) * 0.5 : 0; });
+      };
+    },
+
+    end: (sc, el) => {
+      const items = [['A-00', '拍一下手'], ['A-01', '五个房间，五种余音'], ['A-02', '1895 · 哈佛讲堂和坐垫'], ['A-03', '赛宾公式 T = 0.16 V / A'], ['A-04', '1900 · 波士顿交响乐大厅'], ['A-05', '可听化：房子没盖，先听']];
+      const idx = h('div', { class: 'lab idx', style: 'left:110px;top:200px' }, ...items.map(it => h('div', {}, h('b', { text: it[0] }), it[1])));
+      const refs = h('div', { class: 'lab refs', style: 'left:110px;top:720px;width:860px;white-space:normal' }, h('div', { text: '参考', style: 'color:var(--ink);font-weight:700;margin-bottom:6px' }), ...sc.data.refs.map(r => h('div', { text: r })),
+        h('div', { text: '文中声音均为程序模拟：干声加上按混响时间生成的房间响应。', style: 'margin-top:10px' }));
+      el.append(idx, refs);
+      return lt => { [...idx.children].forEach((c, i) => fade(c, p(lt, 0.2 + i * 0.25, 0.4), 10)); fade(refs, p(lt, E.cue(sc, 'refs', 4), 0.6)); };
+    },
+  };
+
+  E.start({
+    fonts: ['400 30px "Noto Sans SC"', '500 30px "Noto Sans SC"', '700 30px "Noto Sans SC"', '900 30px "Noto Sans SC"', '500 30px "Space Grotesk"', '700 30px "Space Grotesk"', '400 20px "JetBrains Mono"', '700 20px "JetBrains Mono"'],
+    extraText: '项目建筑声学简史图号图名绘制子鱼说声学戴上耳机比例尺图中红色小人声压级拍手之后的衰减示意秒混响时间讲堂平面管风琴管秒表耳朵模拟坐垫之前之后更短房间体积吸声量表面积系数参考照片波士顿交响乐大厅消声室音乐厅可听化与可视化相对声源传播反射衍射散射接收者两只耳朵左耳右耳街道车速参考文中声音均为程序干声加上按生成的响应目录五个种余音哈佛和公式房子没盖先听≈−±·×αVATS0123456789.',
+    pre: 0, post: 0.35,
+    layer: document.getElementById('layer'),
+    init() { drawSheet(); },
+    scenes,
+    frame(t) {
+      let cur = E.TL.scenes[0];
+      for (const sc of E.TL.scenes) if (t >= sc.start - 0.01) cur = sc;
+      document.getElementById('hno').textContent = cur.data.no || '';
+      document.getElementById('htitle').textContent = cur.data.title || '';
+      document.getElementById('tbno').textContent = cur.data.no || '';
+      document.getElementById('tbname').textContent = cur.data.title || '';
+      const listen = ['rooms', 'fogg', 'music', 'aural'].includes(cur.type) || (cur.type === 'open' && t - cur.start > E.cue(cur, 'hp', 99) - 0.1);
+      document.getElementById('hp').style.opacity = listen ? 1 : 0;
+      const sc2 = document.getElementById('scale'); sc2.style.opacity = cur.type === 'rooms' ? 1 : 0;
+      const head = p(t, cur.start, 0.4); ['hno', 'htitle'].forEach(id => { document.getElementById(id).style.opacity = cur.i === 0 ? p(t, 0.2, 0.5) : head; });
+    },
+    transition(sc, t) {
+      const kin = sc.i === 0 ? 1 : p(t, sc.start, 0.35), kout = 1 - p(t, sc.end, 0.3, ease.in);
+      sc.el.style.opacity = kin * kout;
+    },
+    after(t) { caption(t); },
+  });
+})();
+</script></body></html>

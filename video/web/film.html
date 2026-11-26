@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-serif-sc/300.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-serif-sc/400.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-serif-sc/600.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-serif-sc/700.css">
+<style>
+/* 档案版：暖黑底、颗粒、老照片、打字机字幕。没有发光、粒子和逐词弹跳。 */
+:root{--bg:#0d0b09;--ink:#ece3cf;--dim:#8c8270;--faint:#4a4338;--amber:#d9a75a;--paper:#e7dcc4;--paper-ink:#2b241b;--paper-dim:#6b5f4c;--rust:#9b4a2c;
+  --serif:"Noto Serif SC","Noto Serif CJK SC",serif}
+html,body{margin:0;background:var(--bg)}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;background:var(--bg);font-family:var(--serif);color:var(--ink)}
+#film{position:absolute;inset:0}
+#layer{position:absolute;left:0;right:0;top:300px;height:740px}
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#head{position:absolute;left:72px;top:64px}
+#chap{font-size:24px;letter-spacing:6px;color:var(--dim);font-weight:400;height:34px}
+#year{font-size:108px;font-weight:300;letter-spacing:2px;line-height:1.05;color:var(--ink);margin-top:6px;white-space:nowrap}
+#rule{width:64px;height:2px;background:var(--faint);margin-top:18px}
+#brand{position:absolute;right:72px;top:68px;font-size:24px;letter-spacing:5px;color:var(--dim)}
+/* captions: whole sentence laid out from the start, characters revealed in place, so nothing shifts while typing */
+#cap{position:absolute;left:96px;right:96px;top:1078px;height:250px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:44px;line-height:1.62;font-weight:600;letter-spacing:1px}
+#cap .ln{display:block}
+#cap span{position:relative;opacity:0}
+#cap span.on{opacity:1}
+#cap span.hl{color:var(--amber)}
+#cap span.cur::after{content:"";position:absolute;right:-7px;top:12%;height:76%;width:3px;background:var(--ink);opacity:var(--blink,1)}
+/* film surface */
+#grainA{position:absolute;inset:0;opacity:.2;mix-blend-mode:overlay;pointer-events:none}
+#grainB{position:absolute;inset:0;opacity:.025;pointer-events:none}
+#dust{position:absolute;inset:0;pointer-events:none}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(0,0,0,0) 55%,rgba(0,0,0,.6) 100%);pointer-events:none}
+#flick{position:absolute;inset:0;background:#000;pointer-events:none}
+/* prints and paper */
+.ph{display:flex;flex-direction:column;align-items:center}
+.print{background:#e3d8bf;padding:14px;box-shadow:0 28px 60px rgba(0,0,0,.65),0 2px 0 rgba(255,255,255,.05) inset}
+.print img{display:block;filter:grayscale(1) sepia(.38) contrast(1.06) brightness(.93)}
+.print.card{background:var(--paper);padding:34px 36px}
+.print.card img{mix-blend-mode:multiply;filter:grayscale(1) sepia(.18) contrast(1.12)}
+.ph-cap{margin-top:26px;font-size:23px;letter-spacing:1px;color:var(--dim);font-weight:400;text-align:center;max-width:900px}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 34px;margin-top:34px}
+.items div{font-size:31px;font-weight:600;white-space:nowrap}
+.items b{font-weight:400;color:var(--amber);margin-left:12px;font-size:27px;letter-spacing:1px}
+.ear{margin-top:30px;width:860px;position:relative;height:70px}
+.ear .ln{position:absolute;left:40px;right:40px;top:34px;height:2px;background:var(--faint)}
+.ear .dot{position:absolute;top:24px;width:22px;height:22px;border-radius:50%;background:var(--amber);margin-left:-11px}
+.ear .l,.ear .r{position:absolute;top:18px;font-size:26px;color:var(--dim)}
+.ear .l{left:0}.ear .r{right:0}
+.ear .t{position:absolute;left:0;right:0;top:-18px;text-align:center;font-size:22px;color:var(--dim);letter-spacing:3px}
+/* index card */
+.card2{width:840px;background:var(--paper);color:var(--paper-ink);padding:48px 56px 40px;box-shadow:0 28px 60px rgba(0,0,0,.65);
+  background-image:repeating-linear-gradient(0deg,rgba(80,60,30,.0) 0 61px,rgba(155,74,44,.16) 61px 62px)}
+.card2 h2{margin:0 0 26px;font-size:46px;font-weight:700;letter-spacing:4px;padding-bottom:14px;border-bottom:3px solid var(--rust);display:inline-block}
+.card2 .row{display:flex;align-items:baseline;gap:30px;padding:16px 0}
+.card2 .y{width:210px;flex:none;font-size:36px;font-weight:700;color:var(--rust);letter-spacing:1px}
+.card2 .m{font-size:36px;font-weight:600}
+.card2 .s{font-size:27px;color:var(--paper-dim);margin-top:6px;font-weight:400}
+/* open: stopwatch */
+.sw{display:flex;flex-direction:column;align-items:center}
+.sw svg{width:460px;height:460px}
+.sw-num{font-size:84px;font-weight:300;margin-top:8px;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.sw-num small{font-size:34px;margin-left:10px;color:var(--dim)}
+.sw-st{font-size:28px;color:var(--dim);letter-spacing:4px;margin-top:6px;height:40px}
+.tag{font-size:20px;color:var(--dim);letter-spacing:3px}
+/* cushion */
+.cu{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cu svg{display:block}
+/* strip */
+.st{position:absolute;inset:0}
+.st .print{position:absolute;left:50%;top:0}
+.st canvas{position:absolute;left:0;top:420px}
+.st .note{position:absolute;left:0;right:0;top:712px;text-align:center;font-size:24px;color:var(--dim);letter-spacing:2px}
+/* formula */
+.fm{display:flex;flex-direction:column;align-items:center}
+.fm-eq{display:flex;align-items:center;gap:30px;font-size:150px;font-weight:300;line-height:1}
+.fm-eq i{font-style:italic;margin-right:8px}
+.fm-frac{display:flex;flex-direction:column;align-items:center;font-size:118px}
+.fm-frac hr{width:110px;border:0;border-top:4px solid var(--ink);margin:8px 0 10px}
+.fm-eq .k{font-size:100px}
+.fm-lab{margin-top:70px;display:flex;flex-direction:column;gap:22px;width:760px}
+.fm-lab div{font-size:36px;font-weight:600;display:flex;gap:28px;align-items:baseline}
+.fm-lab i{font-style:italic;font-weight:300;font-size:46px;width:44px;color:var(--amber)}
+.fm-lab span{font-size:27px;color:var(--dim);font-weight:400}
+/* end */
+.en{display:flex;flex-direction:column;align-items:center;text-align:center}
+.en h1{font-size:80px;font-weight:300;letter-spacing:12px;margin:0}
+.en .by{font-size:28px;color:var(--dim);letter-spacing:8px;margin-top:22px}
+.en .refs{margin-top:70px;font-size:22px;line-height:1.85;color:var(--dim);font-weight:400;max-width:900px}
+.en .refs b{display:block;font-weight:600;letter-spacing:6px;margin-bottom:8px;color:var(--ink);font-size:24px}
+</style></head>
+<body><div id="stage"><div id="film"><div id="layer"></div>
+<div id="head"><div id="chap"></div><div id="year"></div><div id="rule"></div></div><div id="brand"></div><div id="cap"></div></div>
+<canvas id="grainB" width="1080" height="1440"></canvas><canvas id="grainA" width="1080" height="1440"></canvas><canvas id="dust" width="1080" height="1440"></canvas>
+<div id="vig"></div><div id="flick"></div></div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp } = E;
+  const hash = n => { let x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const clipT = (sc, name) => E.cue(sc, 'clip_' + name);
+
+  // a print (photo or diagram on paper) that settles in and drifts very slowly
+  function Print(d, maxW, maxH) {
+    let w = d.w || 700, hh = w * d.size[1] / d.size[0];
+    if (hh > maxH) { w *= maxH / hh; hh = maxH; }
+    if (w > maxW) { hh *= maxW / w; w = maxW; }
+    const img = h('img', { src: d.img, style: { width: w + 'px', height: hh + 'px' } });
+    const el = h('div', { class: 'print' + (d.card ? ' card' : '') }, img);
+    return { el, img, w, h: hh };
+  }
+
+  const scenes = {
+    open: (sc, el) => {
+      const ticks = [];
+      for (let i = 0; i < 60; i++) {
+        const a = i / 60 * 2 * Math.PI, r0 = i % 5 ? 196 : 182;
+        ticks.push(s('line', { x1: 230 + r0 * Math.sin(a), y1: 230 - r0 * Math.cos(a), x2: 230 + 206 * Math.sin(a), y2: 230 - 206 * Math.cos(a), stroke: '#8c8270', 'stroke-width': i % 5 ? 1.5 : 3 }));
+      }
+      const nums = [0, 10, 20, 30, 40, 50].map(n => { const a = n / 60 * 2 * Math.PI; return s('text', { x: 230 + 160 * Math.sin(a), y: 230 - 160 * Math.cos(a) + 10, 'text-anchor': 'middle', fill: '#8c8270', 'font-size': 28, 'font-family': 'Noto Serif SC', text: String(n) }); });
+      const hand = s('line', { x1: 230, y1: 250, x2: 230, y2: 46, stroke: '#ece3cf', 'stroke-width': 3, 'stroke-linecap': 'round' });
+      const svg = s('svg', { viewBox: '0 0 460 460' },
+        s('rect', { x: 214, y: 0, width: 32, height: 16, fill: 'none', stroke: '#8c8270', 'stroke-width': 2 }),
+        s('circle', { cx: 230, cy: 230, r: 212, fill: 'none', stroke: '#ece3cf', 'stroke-width': 3 }), ...ticks, ...nums, hand,
+        s('circle', { cx: 230, cy: 230, r: 8, fill: '#ece3cf' }));
+      const num = h('div', { class: 'sw-num', html: '0.0<small>秒</small>' }), st = h('div', { class: 'sw-st' }), tag = h('div', { class: 'tag', text: '声音为模拟 · 512 Hz 管风琴管' });
+      const box = h('div', { class: 'sw' }, svg, num, st, tag);
+      el.append(box);
+      const c0 = clipT(sc, 'pipe0'), P = sc.data.pipe, RT = sc.data.rt;
+      return lt => {
+        const k = p(lt, 0.2, 1.0);
+        box.style.opacity = k * (1 - 0.55 * p(lt, c0 + P + RT + 1.2, 1.2));
+        const run = clamp(lt - (c0 + P), 0, RT);
+        hand.setAttribute('transform', `rotate(${(run / 60 * 360).toFixed(2)} 230 230)`);
+        num.innerHTML = run.toFixed(1) + '<small>秒</small>';
+        st.textContent = lt < c0 ? '' : lt < c0 + P ? '吹响' : lt < c0 + P + RT ? '停下，掐表' : '听不见了';
+        tag.style.opacity = p(lt, c0, 0.6);
+      };
+    },
+    photo: (sc, el) => {
+      const d = sc.data, maxH = d.items ? 480 : d.ear ? 500 : 600;
+      const pr = Print(d, 940, maxH);
+      const cap = h('div', { class: 'ph-cap', text: d.cap + (d.img.includes('sabine') || d.img.includes('boston') ? ' · 图：维基百科' : '') });
+      const box = h('div', { class: 'ph' }, pr.el, cap);
+      let items = [], ear = null, dot = null;
+      if (d.items) { items = d.items.map(([zh, en]) => h('div', {}, zh, h('b', { text: en }))); box.append(h('div', { class: 'items' }, ...items)); }
+      if (d.ear) {
+        dot = h('div', { class: 'dot' });
+        ear = h('div', { class: 'ear' }, h('div', { class: 't', text: '戴耳机 · 声音为模拟' }), h('div', { class: 'l', text: '左' }), h('div', { class: 'ln' }), dot, h('div', { class: 'r', text: '右' }));
+        box.append(ear);
+      }
+      el.append(box);
+      const tilt = d.tilt || 0, ti = E.cue(sc, 'items', 99), cc = clipT(sc, 'car'), cd = d.ear ? E.TL.clips.car.d : 1;
+      return lt => {
+        const k = p(lt, 0, 1.1);
+        pr.el.style.transform = `translateY(${(1 - k) * 14}px) rotate(${tilt}deg) scale(${1 + 0.035 * clamp(lt / sc.dur)})`;
+        cap.style.opacity = p(lt, 0.6, 0.8);
+        items.forEach((it, i) => { const q = p(lt, ti + i * 0.42, 0.5); it.style.opacity = q; it.style.transform = `translateY(${(1 - q) * 8}px)`; });
+        if (ear) {
+          ear.style.opacity = p(lt, cc - 2.6, 0.6);
+          const u = ease.io(clamp((lt - cc - 0.4) / (cd - 0.8)));
+          dot.style.left = (40 + u * 780) + 'px'; dot.style.opacity = lt > cc - 0.2 && lt < cc + cd + 0.3 ? 1 : 0.25;
+        }
+      };
+    },
+    card: (sc, el) => {
+      const d = sc.data;
+      const rows = d.rows.map(([y, m, sub, cue]) => { const r = h('div', { class: 'row' }, h('div', { class: 'y', text: y }), h('div', {}, h('div', { class: 'm', text: m }), h('div', { class: 's', text: sub }))); r._cue = cue; return r; });
+      const card = h('div', { class: 'card2' }, h('h2', { text: d.title }), ...rows);
+      el.append(card);
+      return lt => {
+        const k = p(lt, 0, 1.0);
+        card.style.transform = `translateY(${(1 - k) * 16}px) rotate(-0.7deg) scale(${1 + 0.02 * clamp(lt / sc.dur)})`;
+        card.style.opacity = k;
+        rows.forEach(r => { const c = r._cue === 'r2' && !isFinite(E.cue(sc, 'r2')) ? 0.6 : r._cue === 'r2' ? Math.min(E.cue(sc, 'r2'), E.cue(sc, 'r1', 0) + 1.8) : E.cue(sc, r._cue, 0.6);
+          const q = p(lt, c, 0.6); r.style.opacity = 0.12 + 0.88 * q; });
+      };
+    },
+    cushion: (sc, el) => {
+      const d = sc.data, W = 900;
+      // seats of a small amphitheatre, seen from above (illustration)
+      const seats = [], rnd = E.rng(5);
+      for (let row = 0; row < 6; row++) {
+        const R = 92 + row * 40, n = Math.floor(R * 0.74 * Math.PI / 36);
+        for (let i = 0; i < n; i++) {
+          const a = Math.PI * (0.13 + 0.74 * (i + 0.5) / n);
+          const x = 450 - R * Math.cos(a), y = 40 + R * Math.sin(a);
+          const r = s('rect', { x: -12, y: -8, width: 24, height: 16, rx: 4, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(a * 180 / Math.PI - 90).toFixed(1)})`, fill: 'none', stroke: '#6d6455', 'stroke-width': 1.6 });
+          r._o = rnd(); seats.push(r);
+        }
+      }
+      const plan = s('svg', { width: W, height: 330, viewBox: '0 0 900 330' },
+        s('rect', { x: 395, y: 6, width: 110, height: 12, fill: 'none', stroke: '#8c8270', 'stroke-width': 1.5 }),
+        s('text', { x: 450, y: 50, 'text-anchor': 'middle', fill: '#8c8270', 'font-size': 20, 'font-family': 'Noto Serif SC', text: '讲台' }), ...seats);
+      // decay graph: level after the pipe stops
+      const gx = 110, gy = 30, gw = 740, gh = 230, xs = 6.5, X = v => gx + v / xs * gw, Y = db => gy + (-db) / 60 * gh;
+      const grid = [];
+      [0, -20, -40, -60].forEach(db => { grid.push(s('line', { x1: gx, x2: gx + gw, y1: Y(db), y2: Y(db), stroke: '#3a342b', 'stroke-width': 1 })); grid.push(s('text', { x: gx - 16, y: Y(db) + 8, 'text-anchor': 'end', fill: '#8c8270', 'font-size': 21, 'font-family': 'Noto Serif SC', text: db + ' dB' })); });
+      [0, 1, 2, 3, 4, 5, 6].forEach(v => grid.push(s('text', { x: X(v), y: gy + gh + 34, 'text-anchor': 'middle', fill: '#8c8270', 'font-size': 21, 'font-family': 'Noto Serif SC', text: v + (v === 6 ? ' 秒' : '') })));
+      const pre = s('path', { fill: 'none', stroke: '#8c8270', 'stroke-width': 3, 'stroke-dasharray': '10 8' }), post = s('path', { fill: 'none', stroke: '#d9a75a', 'stroke-width': 4 });
+      const l1 = s('text', { x: X(2.9), y: Y(-21), 'text-anchor': 'start', fill: '#8c8270', 'font-size': 25, 'font-family': 'Noto Serif SC', text: '坐垫之前' });
+      const l2 = s('text', { x: X(d.after) + 16, y: Y(-50), 'text-anchor': 'start', fill: '#d9a75a', 'font-size': 25, 'font-family': 'Noto Serif SC', 'font-weight': 600, text: '坐垫之后' });
+      const graph = s('svg', { width: W, height: 300, viewBox: '0 0 900 300' }, ...grid, pre, post, l1, l2,
+        s('text', { x: gx + gw, y: gy - 6, 'text-anchor': 'end', fill: '#6d6455', 'font-size': 20, 'font-family': 'Noto Serif SC', text: '停下之后的声级 · 模拟' }));
+      const lab = h('div', { class: 'tag', text: '讲堂座位（示意）' });
+      el.append(h('div', { class: 'cu' }, plan, lab, h('div', { style: { height: '34px' } }), graph));
+      const c1 = E.cue(sc, 'c1', 1), c2 = E.cue(sc, 'c2', 8), cp = clipT(sc, 'pipe1');
+      const line = (T, u) => `M${X(0)} ${Y(0)} L${X(T * u)} ${Y(-60 * u)}`;
+      return lt => {
+        const k = p(lt, 0, 1); el.firstChild.style.opacity = k;
+        const fill = clamp((lt - c1) / (cp - c1));
+        seats.forEach(r => { const on = r._o < fill; r.setAttribute('fill', on ? '#d8c9a8' : 'none'); r.setAttribute('stroke', on ? '#d8c9a8' : '#6d6455'); });
+        const u0 = p(lt, 0.6, 1.6, ease.io); pre.setAttribute('d', line(d.before, Math.max(u0, 0.001))); l1.style.opacity = p(lt, 1.8, 0.6);
+        const u1 = clamp((lt - cp - d.pipe) / d.after); post.setAttribute('d', line(d.after, Math.max(u1, 0.001))); post.style.opacity = lt > cp + d.pipe ? 1 : 0;
+        l2.style.opacity = p(lt, cp + d.pipe + d.after, 0.5);
+      };
+    },
+    formula: (sc, el) => {
+      const T = h('i', { text: 'T' }), V = h('i', { text: 'V' }), A = h('i', { text: 'A' });
+      const eq = h('div', { class: 'fm-eq' }, T, h('span', { text: '=' }), h('span', { class: 'k', text: '0.16' }), h('span', { class: 'k', text: '×' }), h('div', { class: 'fm-frac' }, V, h('hr'), A));
+      const rows = [['V', '房间体积', '立方米', 'v'], ['A', '吸声量', '各表面面积 × 吸声系数，再相加', 'a'], ['T', '混响时间', '秒', 't']].map(([l, zh, sub, c]) => { const r = h('div', {}, h('i', { text: l }), zh, h('span', { text: sub })); r._c = c; return r; });
+      el.append(h('div', { class: 'fm' }, eq, h('div', { class: 'fm-lab' }, ...rows)));
+      const mark = { v: V, a: A, t: T };
+      return lt => {
+        const k = p(lt, 0.2, 1.2); eq.style.opacity = k; eq.style.transform = `translateY(${(1 - k) * 12}px)`;
+        rows.forEach((r, i) => { const c = 1.3 + i * 0.9, q = p(lt, c, 0.6); r.style.opacity = q; mark[r._c].style.color = lt > c && lt < c + 1.6 ? 'var(--amber)' : ''; });
+      };
+    },
+    strip: (sc, el) => {
+      const d = sc.data, pr = Print(Object.assign({ w: 560 }, d), 600, 330);
+      pr.el.style.marginLeft = (-pr.w / 2 - 14) + 'px';
+      const cv = h('canvas', { width: 1080, height: 270 }), ctx = cv.getContext('2d');
+      const note = h('div', { class: 'note', text: '纸带上的衰减 · 声音为模拟（一间教室）' });
+      el.append(h('div', { class: 'st' }, pr.el, cv, note));
+      const cs = clipT(sc, 'strip'), cd = E.TL.clips.strip.d, on = d.on, T = d.T, SP = 170, PX = 760, H = 270, top = 24, bot = 246;
+      const yOf = db => top + (-db) / 60 * (bot - top);
+      const stop = cs + cd + 0.2;                       // operator stops the paper feed after the clip
+      const paperT = lt => lt < stop ? lt : stop + 0.35 * (1 - Math.exp(-(lt - stop) / 0.35));   // feed position in seconds of travel
+      const level = tau => {                            // pen level (dB) at clip-relative time tau
+        let v = -47 + 2.2 * (hash(Math.floor(tau * 40)) - 0.5) + 1.2 * Math.sin(tau * 23);
+        for (const o of on) if (tau >= o) v = Math.max(v, -1.5 - 60 / T * (tau - o) + 0.8 * (hash(Math.floor(tau * 90) + 7) - 0.5));
+        return v;
+      };
+      const rc = E.cue(sc, 'ruler', 99);
+      return lt => {
+        const k = p(lt, 0, 1); el.firstChild.style.opacity = k;
+        const msg = lt >= rc ? '顺着斜率外推到 −60 dB：约 ' + T.toFixed(1) + ' 秒 · 声音为模拟（一间教室）' : '纸带上的衰减 · 声音为模拟（一间教室）';
+        if (note.textContent !== msg) note.textContent = msg;
+        note.style.color = lt >= rc ? '#d9a75a' : '';
+        pr.el.style.transform = `rotate(-0.8deg) scale(${1 + 0.02 * clamp(lt / sc.dur)})`;
+        const pt = paperT(lt), pe = pt - cs;          // paper position, in clip time, under the pen
+        ctx.clearRect(0, 0, 1080, H);
+        ctx.fillStyle = '#e2d6bc'; ctx.fillRect(0, 0, 1080, H);
+        ctx.strokeStyle = 'rgba(155,74,44,.28)'; ctx.lineWidth = 1;
+        for (let db = 0; db >= -60; db -= 10) { ctx.beginPath(); ctx.moveTo(0, yOf(db)); ctx.lineTo(1080, yOf(db)); ctx.stroke(); }
+        for (let g = Math.floor((pe - PX / SP) * 4) / 4; g < pe + 2; g += 0.25) { const x = PX - (pe - g) * SP; ctx.globalAlpha = Math.abs(g * 4 % 4) < 0.01 ? 0.9 : 0.4; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bot); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#2f2a63'; ctx.lineWidth = 2.4; ctx.beginPath();
+        let first = true;
+        for (let x = 0; x <= PX; x += 1.5) { const tau = pe - (PX - x) / SP; if (tau < -cs) continue; const y = yOf(level(tau)); if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y); }
+        ctx.stroke();
+        // pen
+        const py = yOf(level(pe));
+        ctx.fillStyle = '#2b241b'; ctx.beginPath(); ctx.moveTo(PX, py); ctx.lineTo(PX + 30, py - 12); ctx.lineTo(PX + 30, py + 12); ctx.closePath(); ctx.fill();
+        ctx.fillRect(PX + 30, py - 4, 300, 8);
+        // ruler laid along the first decay, extrapolated to -60 dB
+        const q = p(lt, rc, 0.7);
+        if (q > 0) {
+          const o = on[0], x0 = PX - (pe - o) * SP, y0 = yOf(-1.5), x1 = x0 + T * SP, y1 = yOf(-61.5);
+          const ang = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0) + 120;
+          ctx.save(); ctx.globalAlpha = q; ctx.translate(x0 - 60 * Math.cos(ang) + 26 * Math.sin(ang), y0 - 60 * Math.sin(ang) - 26 * Math.cos(ang)); ctx.rotate(ang);
+          ctx.fillStyle = 'rgba(240,232,210,.72)'; ctx.strokeStyle = 'rgba(43,36,27,.8)'; ctx.lineWidth = 1.5;
+          ctx.fillRect(0, -22, len, 44); ctx.strokeRect(0, -22, len, 44);
+          for (let i = 0; i < len; i += 10) { ctx.beginPath(); ctx.moveTo(i, -22); ctx.lineTo(i, i % 50 ? -12 : -2); ctx.stroke(); }
+          ctx.restore();
+          ctx.globalAlpha = 1;
+        }
+      };
+    },
+    end: (sc, el) => {
+      const refs = h('div', { class: 'refs' }, h('b', { text: '参考' }), ...sc.data.refs.map(r => h('div', { text: r })));
+      const box = h('div', { class: 'en' }, h('h1', { text: '建筑声学简史' }), h('div', { class: 'by', text: '子鱼说声学' }), refs);
+      el.append(box);
+      const rc = E.cue(sc, 'refs', 99);
+      return lt => { const k = p(lt, rc - 0.2, 1.2); box.style.opacity = k; box.style.transform = `translateY(${(1 - k) * 10}px)`; };
+    },
+  };
+
+  // ---- captions: the whole sentence is laid out at once (invisible), characters revealed in place ----
+  const capEl = document.getElementById('cap');
+  // break a caption into balanced lines (at most ~18 characters), preferring to break after punctuation
+  function splitLines(tokens) {
+    const man = tokens.map((tk, i) => tk.d === '/' ? i : -1).filter(i => i >= 0);   // a '/' in the script forces the break
+    if (man.length) { const out = []; let a = 0; for (const m of man) { out.push([a, m]); a = m + 1; } out.push([a, tokens.length]); return out; }
+    const L = tk => [...(tk.d + tk.p)].reduce((a, c) => a + (c.charCodeAt(0) < 256 ? 0.55 : 1), 0), MAX = 19.2;
+    const cum = []; let c = 0; tokens.forEach(tk => { c += L(tk); cum.push(c); });
+    const tot = c; if (tot <= MAX) return [[0, tokens.length]];
+    let br = [];
+    for (let nl = Math.ceil(tot / MAX); nl <= Math.ceil(tot / MAX) + 2; nl++) {
+      br = []; let ok = true;
+      for (let k = 1; k < nl && ok; k++) {
+        const target = tot * k / nl, from = br.length ? br[br.length - 1] + 1 : 0, base = br.length ? cum[br[br.length - 1]] : 0;
+        let best = -1, bc = 1e9;
+        for (let i = from; i < tokens.length - 1; i++) {
+          if (cum[i] - base > MAX) break;
+          if (tot - cum[i] > MAX * (nl - k)) continue;            // what is left must still fit in the remaining lines
+          let cost = Math.abs(cum[i] - target);
+          if (/[，。：；？！、）]/.test(tokens[i].p) && cum[i] - base > 0.3 * tot / nl * nl / 2) cost -= 4.5;
+          if (cost < bc) { bc = cost; best = i; }
+        }
+        if (best < 0) ok = false; else br.push(best);
+      }
+      if (ok) break;
+    }
+    const out = []; let a = 0; for (const b of br) { out.push([a, b + 1]); a = b + 1; } out.push([a, tokens.length]);
+    return out;
+  }
+  let capKey = null, capSpans = [];
+  function captions(t) {
+    let st = null;
+    for (const x of E.says) if (t >= x.start && t < x.end) { st = x; break; }
+    if (!st) { if (capKey !== null) { capEl.replaceChildren(); capKey = null; } return; }
+    if (capKey !== st.start) {
+      capKey = st.start;
+      capSpans = st.tokens.map(tk => { const sp = h('span', { class: tk.hl ? 'hl' : '', text: tk.d === '/' ? '' : tk.d + tk.p }); sp._t = tk.t0; return sp; });
+      capEl.replaceChildren(h('div', {}, ...splitLines(st.tokens).map(([a, b]) => h('div', { class: 'ln' }, ...capSpans.slice(a, b)))));
+    }
+    const out = 1 - p(t, st.end - 0.32, 0.3, ease.in);
+    capEl.style.opacity = out;
+    let last = null;
+    for (const sp of capSpans) { const on = t >= sp._t; sp.classList.toggle('on', on); sp.classList.remove('cur'); if (on) last = sp; }
+    const typing = capSpans.length && t < capSpans[capSpans.length - 1]._t + 0.06;
+    if (last && (typing || t < last._t + 1.6)) { last.classList.add('cur'); capEl.style.setProperty('--blink', typing ? 1 : (Math.floor((t - last._t) * 2.2) % 2 ? 0 : 1)); }
+  }
+
+  // ---- header: year and chapter change only when they change ----
+  const chapEl = document.getElementById('chap'), yearEl = document.getElementById('year'), head = document.getElementById('head');
+  function header(t) {
+    let cur = E.TL.scenes[0];
+    for (const sc of E.TL.scenes) if (t >= sc.start - 0.05) cur = sc;
+    const prev = E.TL.scenes[cur.i - 1], same = prev && prev.data.year === cur.data.year;
+    if (yearEl.textContent !== (cur.data.year || '')) { yearEl.textContent = cur.data.year || ''; chapEl.textContent = cur.data.chap || ''; }
+    if (chapEl.textContent !== (cur.data.chap || '')) chapEl.textContent = cur.data.chap || '';
+    const nxt = E.TL.scenes[cur.i + 1], leave = nxt && nxt.data.year !== cur.data.year ? 1 - p(t, cur.end - 0.5, 0.45, ease.in) : 1;
+    const kin = cur.i === 0 ? p(t, 0.3, 1.0) : same ? 1 : p(t, cur.start, 0.8);
+    head.style.opacity = kin * leave;
+  }
+
+  // ---- film surface: grain tiles at 24 fps, gate weave, flicker, the odd speck of dust ----
+  let tiles = [], gA, gB, dust;
+  function makeTiles() {
+    const r = E.rng(99);
+    for (let k = 0; k < 8; k++) {
+      const c = document.createElement('canvas'); c.width = 400; c.height = 540;
+      const x = c.getContext('2d'), im = x.createImageData(400, 540);
+      for (let i = 0; i < im.data.length; i += 4) { const v = Math.floor(128 + (r() + r() + r() - 1.5) * 150); im.data[i] = im.data[i + 1] = im.data[i + 2] = clamp(v, 0, 255); im.data[i + 3] = 255; }
+      x.putImageData(im, 0, 0); tiles.push(c);
+    }
+  }
+  function surface(t) {
+    const f = Math.floor(t * 15), tile = tiles[f % 8], ox = -Math.floor(hash(f) * 110), oy = -Math.floor(hash(f + 3) * 150);
+    for (const g of [gA, gB]) { g.clearRect(0, 0, 1080, 1440); g.imageSmoothingEnabled = true; g.drawImage(tile, ox, oy, 1200, 1620); }
+    const film = document.getElementById('film');
+    film.style.transform = `translate(${((hash(f + 11) - 0.5) * 1.6).toFixed(2)}px,${((hash(f + 17) - 0.5) * 2.0).toFixed(2)}px)`;
+    document.getElementById('flick').style.opacity = (0.025 + 0.045 * hash(f + 5)).toFixed(3);
+    dust.clearRect(0, 0, 1080, 1440);
+    if (hash(f + 29) > 0.9) {
+      const n = 1 + Math.floor(hash(f + 31) * 3);
+      for (let i = 0; i < n; i++) {
+        dust.fillStyle = hash(f + i * 7) > 0.5 ? 'rgba(236,227,207,.55)' : 'rgba(0,0,0,.7)';
+        dust.beginPath(); dust.ellipse(hash(f + i * 13) * 1080, hash(f + i * 19) * 1440, 1 + hash(f + i) * 2.2, 1 + hash(f + i + 2) * 1.4, hash(f + i) * 3, 0, 6.3); dust.fill();
+      }
+    }
+    if (hash(f + 41) > 0.985) { dust.strokeStyle = 'rgba(236,227,207,.18)'; dust.lineWidth = 1; const x = hash(f + 43) * 1080; dust.beginPath(); dust.moveTo(x, 0); dust.lineTo(x + 6, 1440); dust.stroke(); }
+  }
+
+  E.start({
+    fonts: ['300 30px "Noto Serif SC"', '400 30px "Noto Serif SC"', '600 30px "Noto Serif SC"', '700 30px "Noto Serif SC"'],
+    extraText: '吹响停下，掐表听不见了秒声音为模拟管风琴管坐垫之前之后讲堂座位（示意）讲台停下之后的声级dB戴耳机左右参考子鱼说声学建筑声学简史顺着斜率外推到−约纸带上的衰减（一间教室）图：维基百科·0123456789.×=VAT房间体积立方米吸声量各表面面积系数再相加混响时间',
+    pre: 0, post: 0,
+    layer: document.getElementById('layer'),
+    init() {
+      gA = document.getElementById('grainA').getContext('2d'); gB = document.getElementById('grainB').getContext('2d'); dust = document.getElementById('dust').getContext('2d');
+      makeTiles();
+      document.getElementById('brand').textContent = (E.TL.meta && E.TL.meta.brand) || '';
+    },
+    scenes,
+    frame(t) { surface(t); },
+    transition(sc, t) {
+      const kin = sc.i === 0 ? p(t, 0, 0.6) : p(t, sc.start, 0.7), kout = 1 - p(t, sc.end - 0.5, 0.45, ease.in);
+      sc.el.style.opacity = (kin * kout).toFixed(3);
+    },
+    after(t) { captions(t); header(t); },
+  });
+})();
+</script></body></html>

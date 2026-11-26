@@ -80,6 +80,14 @@ def main():
                 S['cues']['clip_' + arg] = round(t, 3)
                 place.append(('clip', t, arg, d))
                 t += d + o.get('gap', 0.2)
+            elif kind == 'text':                 # caption with no narration (silent styles): typed in, held for reading
+                r = core.typed(arg, o.get('cps', 16))
+                d = o.get('d') or core.read_time(r['chars'])
+                S['steps'].append(dict(kind='say', silent=True, start=round(t, 3), end=round(t + d, 3),
+                                       tokens=[dict(d=k['d'], p=k['p'], hl=k['hl'], t0=round(t + k['t0'], 3), t1=round(t + k['t1'], 3)) for k in r['tokens']]))
+                for cn, ct in r['cues'].items():
+                    S['cues'][cn] = round(t + ct, 3)
+                t += d + o.get('gap', mod.GAP)
             elif kind == 'wait':
                 S['steps'].append(dict(kind='wait', name=o.get('name', ''), start=round(t, 3), end=round(t + arg, 3)))
                 if o.get('name'):
