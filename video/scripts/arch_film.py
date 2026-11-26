@@ -44,11 +44,11 @@ def pen_strip():
 
 STRIP, STRIP_ON = pen_strip()
 CLIPS = {
-    'pipe0': dict(gen=lambda: in_room(pipe(), 'fogg'), raw=True),                     # untreated lecture room (simulated)
-    'pipe1': dict(gen=lambda: in_room(pipe(), 'fogg2'), raw=True),                    # after cushions (simulated)
-    'dry': dict(gen=lambda: 0.6 * seq(in_room(clap(4), 'anechoic', norm=False), in_room(clap(9), 'anechoic', norm=False), gap=0.55), raw=True),
-    'strip': dict(gen=lambda: 0.75 * STRIP, raw=True),
-    'car': dict(gen=lambda: car_pass() * 1.7, raw=True),
+    'pipe0': dict(gen=lambda: 0.8 * in_room(pipe(), 'fogg'), raw=True),               # untreated lecture room (simulated)
+    'pipe1': dict(gen=lambda: 0.8 * in_room(pipe(), 'fogg2'), raw=True),              # after cushions (simulated)
+    'dry': dict(gen=lambda: 0.36 * seq(in_room(clap(4), 'anechoic', norm=False), in_room(clap(9), 'anechoic', norm=False), gap=0.55), raw=True),
+    'strip': dict(gen=lambda: 0.34 * STRIP, raw=True),
+    'car': dict(gen=lambda: car_pass() * 0.8, raw=True),
 }
 
 PAR = [('清晰度', 'C'), ('早期衰变时间', 'EDT'), ('侧向能量比', 'LEF'), ('双耳互相关', 'IACC'), ('强度', 'G'), ('视在声源宽度', 'ASW')]
@@ -61,7 +61,7 @@ def photo(img, year, chap, wet, **d):
 def cap(s, **o):
     """Silent caption held long enough to read: about 5.2 Chinese characters a second (Latin letters count less)."""
     import re
-    vis = re.sub(r'\[\[[^\]]*\]\]|\*', '', re.sub(r'\{([^|}]*)\|[^}]*\}', r'\1', s))
+    vis = re.sub(r'\[\[[^\]]*\]\]|\*|/', '', re.sub(r'\{([^|}]*)\|[^}]*\}', r'\1', s))
     n = sum(1 for c in vis if '\u4e00' <= c <= '\u9fff') + 0.4 * sum(1 for c in vis if c.isascii() and c.isalnum())
     o.setdefault('d', round(max(2.0, 0.35 + n / 5.2), 2))
     return text(s, **o)
@@ -87,7 +87,7 @@ SCENES = [
     ]),
     dict(id='formula', type='formula', data=dict(year='1900', chap='赛宾公式', wet=0.4), steps=[
         cap("[[t]]余音的长短，叫*混响时间*，至今仍是衡量房间声学的重要指标。"),
-        cap("三十年代，Eyring 和 Norris 从理论上证明了这个公式。"),
+        cap("三十年代，Eyring 和 Norris/从理论上证明了这个公式。"),
     ]),
     dict(id='boston', type='photo', data=photo('boston', '1900', '波士顿', 1.0, w=600, tilt=1.2), steps=[
         cap("1900 年，波士顿交响乐大厅启用，声学由赛宾负责。"),
@@ -95,7 +95,8 @@ SCENES = [
         cap("建筑声学，从这里算起。"),
     ]),
     dict(id='anechoic', type='photo', data=photo('anechoic', '1936', '消声室', 0.0, w=900, tilt=-0.8), steps=[
-        cap("1936 年，德国人建成用尖劈吸声的*消声室*。在里面拍两下手：", gap=0.3),
+        cap("1936 年，德国建成尖劈吸声的*消声室*。"),
+        cap("在里面拍两下手：", d=2.0, gap=0.3),
         clip('dry', gap=0.6),
         cap("没有一点余音。这段配乐也是干的。"),
     ]),
@@ -130,7 +131,8 @@ SCENES = [
         cap("它们大多把声音当成没有相位的小球，频率一低就算不准。"),
     ]),
     dict(id='robin', type='photo', data=photo('robin', '1995', 'Round Robin', 0.4, w=900, tilt=-0.5, card=True), steps=[
-        cap("九十年代中期，同一个房间交给各家软件算，结果差得很远。"),
+        cap("九十年代中期，同一个房间交给各家软件算。"),
+        cap("结果差得很远。", d=2.4),
     ]),
     dict(id='aural', type='photo', data=photo('steps', '1994', '可听化', 1.0, w=900, tilt=0.6, card=True,
                                               cap='可听化的四步：声源、传播、回放、接收者 · Vorländer《Auralization》，2007'), steps=[
@@ -171,6 +173,9 @@ def music(total, scenes):
     a = np.clip(c, 0, 1); b = np.clip(c - 1, 0, 1)
     gd = np.cos(a * np.pi / 2); gh = np.sin(a * np.pi / 2) * np.cos(b * np.pi / 2); gb = np.sin(b * np.pi / 2)
     out = dry * gd[:, None] + hall * gh[:, None] + big * gb[:, None]
+    r = rms(out[int(scenes[1]['start'] * SR):]) + 1e-9         # tame the piano's attacks ~10 dB above its average, so the
+    m = np.abs(out) / r; k = 3.2                                # programme gain never pushes a downbeat into the limiter
+    out = np.where(m > k, np.sign(out) * r * (k + 1.4 * np.tanh((m - k) / 1.4)), out)
     t1 = scenes[1]['start']                                    # music starts with the second scene
     env = np.clip((np.arange(len(out)) / SR - (t1 - 1.0)) / 3.0, 0, 1)
     return (out * env[:, None]).astype('f4')

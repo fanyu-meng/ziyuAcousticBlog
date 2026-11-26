@@ -27,8 +27,8 @@ html,body{margin:0;background:var(--bg)}
 #cap span.hl{color:var(--amber)}
 #cap span.cur::after{content:"";position:absolute;right:-7px;top:12%;height:76%;width:3px;background:var(--ink);opacity:var(--blink,1)}
 /* film surface */
-#grainA{position:absolute;inset:0;opacity:.32;mix-blend-mode:overlay;pointer-events:none}
-#grainB{position:absolute;inset:0;opacity:.035;pointer-events:none}
+#grainA{position:absolute;inset:0;opacity:.2;mix-blend-mode:overlay;pointer-events:none}
+#grainB{position:absolute;inset:0;opacity:.025;pointer-events:none}
 #dust{position:absolute;inset:0;pointer-events:none}
 #vig{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(0,0,0,0) 55%,rgba(0,0,0,.6) 100%);pointer-events:none}
 #flick{position:absolute;inset:0;background:#000;pointer-events:none}
@@ -290,20 +290,27 @@ html,body{margin:0;background:var(--bg)}
   const capEl = document.getElementById('cap');
   // break a caption into balanced lines (at most ~18 characters), preferring to break after punctuation
   function splitLines(tokens) {
+    const man = tokens.map((tk, i) => tk.d === '/' ? i : -1).filter(i => i >= 0);   // a '/' in the script forces the break
+    if (man.length) { const out = []; let a = 0; for (const m of man) { out.push([a, m]); a = m + 1; } out.push([a, tokens.length]); return out; }
     const L = tk => [...(tk.d + tk.p)].reduce((a, c) => a + (c.charCodeAt(0) < 256 ? 0.55 : 1), 0), MAX = 19.2;
     const cum = []; let c = 0; tokens.forEach(tk => { c += L(tk); cum.push(c); });
     const tot = c; if (tot <= MAX) return [[0, tokens.length]];
-    const nl = Math.ceil(tot / MAX), br = [];
-    for (let k = 1; k < nl; k++) {
-      const target = tot * k / nl, from = br.length ? br[br.length - 1] + 1 : 0, base = br.length ? cum[br[br.length - 1]] : 0;
-      let best = from, bc = 1e9;
-      for (let i = from; i < tokens.length - 1; i++) {
-        if (cum[i] - base > MAX) break;
-        let cost = Math.abs(cum[i] - target);
-        if (/[，。：；？！、）]/.test(tokens[i].p)) cost -= 6;
-        if (cost < bc) { bc = cost; best = i; }
+    let br = [];
+    for (let nl = Math.ceil(tot / MAX); nl <= Math.ceil(tot / MAX) + 2; nl++) {
+      br = []; let ok = true;
+      for (let k = 1; k < nl && ok; k++) {
+        const target = tot * k / nl, from = br.length ? br[br.length - 1] + 1 : 0, base = br.length ? cum[br[br.length - 1]] : 0;
+        let best = -1, bc = 1e9;
+        for (let i = from; i < tokens.length - 1; i++) {
+          if (cum[i] - base > MAX) break;
+          if (tot - cum[i] > MAX * (nl - k)) continue;            // what is left must still fit in the remaining lines
+          let cost = Math.abs(cum[i] - target);
+          if (/[，。：；？！、）]/.test(tokens[i].p) && cum[i] - base > 0.3 * tot / nl * nl / 2) cost -= 4.5;
+          if (cost < bc) { bc = cost; best = i; }
+        }
+        if (best < 0) ok = false; else br.push(best);
       }
-      br.push(best);
+      if (ok) break;
     }
     const out = []; let a = 0; for (const b of br) { out.push([a, b + 1]); a = b + 1; } out.push([a, tokens.length]);
     return out;
@@ -315,7 +322,7 @@ html,body{margin:0;background:var(--bg)}
     if (!st) { if (capKey !== null) { capEl.replaceChildren(); capKey = null; } return; }
     if (capKey !== st.start) {
       capKey = st.start;
-      capSpans = st.tokens.map(tk => { const sp = h('span', { class: tk.hl ? 'hl' : '', text: tk.d + tk.p }); sp._t = tk.t0; return sp; });
+      capSpans = st.tokens.map(tk => { const sp = h('span', { class: tk.hl ? 'hl' : '', text: tk.d === '/' ? '' : tk.d + tk.p }); sp._t = tk.t0; return sp; });
       capEl.replaceChildren(h('div', {}, ...splitLines(st.tokens).map(([a, b]) => h('div', { class: 'ln' }, ...capSpans.slice(a, b)))));
     }
     const out = 1 - p(t, st.end - 0.32, 0.3, ease.in);
@@ -344,15 +351,15 @@ html,body{margin:0;background:var(--bg)}
   function makeTiles() {
     const r = E.rng(99);
     for (let k = 0; k < 8; k++) {
-      const c = document.createElement('canvas'); c.width = 640; c.height = 860;
-      const x = c.getContext('2d'), im = x.createImageData(640, 860);
+      const c = document.createElement('canvas'); c.width = 400; c.height = 540;
+      const x = c.getContext('2d'), im = x.createImageData(400, 540);
       for (let i = 0; i < im.data.length; i += 4) { const v = Math.floor(128 + (r() + r() + r() - 1.5) * 150); im.data[i] = im.data[i + 1] = im.data[i + 2] = clamp(v, 0, 255); im.data[i + 3] = 255; }
       x.putImageData(im, 0, 0); tiles.push(c);
     }
   }
   function surface(t) {
-    const f = Math.floor(t * 24), tile = tiles[f % 8], ox = -Math.floor(hash(f) * 180), oy = -Math.floor(hash(f + 3) * 240);
-    for (const g of [gA, gB]) { g.clearRect(0, 0, 1080, 1440); g.drawImage(tile, ox, oy, 1280, 1720); }
+    const f = Math.floor(t * 15), tile = tiles[f % 8], ox = -Math.floor(hash(f) * 110), oy = -Math.floor(hash(f + 3) * 150);
+    for (const g of [gA, gB]) { g.clearRect(0, 0, 1080, 1440); g.imageSmoothingEnabled = true; g.drawImage(tile, ox, oy, 1200, 1620); }
     const film = document.getElementById('film');
     film.style.transform = `translate(${((hash(f + 11) - 0.5) * 1.6).toFixed(2)}px,${((hash(f + 17) - 0.5) * 2.0).toFixed(2)}px)`;
     document.getElementById('flick').style.opacity = (0.025 + 0.045 * hash(f + 5)).toFixed(3);
