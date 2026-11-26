@@ -94,7 +94,10 @@ def dump(aid, out_dir=None):
     print('\nvideos:', a['videos'], '\naudios:', a['audios'])
     ims = []
     for i, f in enumerate(a['figs'], 1):
-        im = Image.open(SITE + f).convert('RGB'); w, h = im.size
+        try:
+            im = Image.open(SITE + f).convert('RGB'); w, h = im.size
+        except Exception:                          # e.g. an SVG formula: list it, no thumbnail
+            print(f'figure {i} not a raster image: {f}'); continue
         th = im.resize((360, max(1, int(h * 360 / w))))
         d = ImageDraw.Draw(th); d.rectangle((0, 0, 70, 26), fill=(220, 30, 30)); d.text((6, 6), f'#{i} {w}x{h}', fill='white')
         ims.append(th)

@@ -28,7 +28,6 @@ window.NOTES = function (api) {
   SEC.hook = (K, sc) => {
     const t0 = sc.start;
     K.text(150, 40, '2021.07.03', t0, { size: 30, color: PEN, rot: 0, dur: 0.01 });
-    K.text(840, 40, '声学史 · 番外', t0, { size: 30, color: PEN, rot: 0, dur: 0.01 });
     K.stroke([[150, 96], [1010, 94]], t0, { color: PEN, w: 2, dur: 0.01 });
     const tr = K.T('reis'), tc = K.T('call');
     reel(K, 'reis', [['brief_reis', tr], ['brief_vorl', tc + 0.8]], 150, 130, 560, t0, { rot: -1.2, cap: '研究所的短片 · 原文视频画面', photo: true });
