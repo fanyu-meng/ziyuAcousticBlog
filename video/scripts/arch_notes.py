@@ -5,7 +5,7 @@
 from scripts.arch import *
 
 FIGS_USED = ['sabine', 'boston', 'anechoic', 'response', 'recorder', 'robin', 'car']
-META = dict(figs={n: fig(n) for n in FIGS_USED}, caps={n: FIGS[n][3] for n in FIGS_USED})
+META = dict(notes='arch', figs={n: fig(n) for n in FIGS_USED}, caps={n: FIGS[n][3] for n in FIGS_USED})
 
 PAGE, OUTPUT = 'notes.html', '建筑声学_手绘笔记版'
 VOICE, RATE = 'zh-CN-YunjianNeural', '+15%'        # 比 A/B/C 的 +38% 慢：语速快正是营销号的味道
