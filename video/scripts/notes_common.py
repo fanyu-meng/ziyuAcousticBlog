@@ -20,9 +20,14 @@ ARTICLES = SITE + '/content/articles/'
 LARGE = 'https://fanyumeng.com/largeFiles/acoustics-media/'
 
 
+def media_dir(aid):
+    """Folder name of an article's media: 'zhihu-<n>' for a bare number, a full id ('wechat-…', 'zhihu-…') as it is."""
+    return aid if aid.startswith(('zhihu-', 'wechat-')) else f'zhihu-{aid}'
+
+
 def article(aid):
-    """-> dict(title, date, html, figs:[site path], videos:[file], audios:[path])"""
-    h = json.load(open(ARTICLES + f'{aid}.json'))['html']
+    """-> dict(title, date, html, figs:[site path], videos:[file], audios:[path]); aid is a bare number or a full id."""
+    h = json.load(open(ARTICLES + f"{aid.replace('zhihu-', '')}.json"))['html']
     idx = json.load(open(SITE + '/content/acoustics-index.json'))
     items = idx if isinstance(idx, list) else idx.get('articles', [])
     meta = next((x for x in items if x['id'].endswith(aid)), {})
@@ -72,7 +77,7 @@ def largefile(aid, name):
     """The article's archived video or audio (largeFiles), downloaded once into the cache."""
     out = f'{CACHE}/lf_{aid}_{name}'
     if not os.path.exists(out) or os.path.getsize(out) < 1000:
-        url = LARGE + f'zhihu-{aid}/{name}'
+        url = LARGE + f'{media_dir(aid)}/{name}'
         req = urllib.request.Request(url, headers={'User-Agent': 'video-build'})
         with urllib.request.urlopen(req, timeout=120) as r, open(out + '.part', 'wb') as f:
             f.write(r.read())
