@@ -37,6 +37,52 @@ def parse(text):
         atoms.append(dict(s=ch, d=ch, hl=hl, cues=pend)); pend = []; i += 1
     if pend:
         atoms.append(dict(s='', d='', hl=False, cues=pend))
+    return _readings(_quiet(atoms))
+
+
+def _cjk(ch):
+    return bool(ch) and '\u3000' <= ch <= '\u9fff'
+
+
+def _quiet(atoms):
+    """Spaces and the name dot next to Chinese stay in the captions but are not spoken: the voice reads them as a pause
+    in the middle of a phrase (每秒振动 264 次, 伊曼纽尔·维格兰). Between two Latin words a space is still spoken."""
+    out = []
+    for i, a in enumerate(atoms):
+        if a['s'] in (' ', '·') and a['s'] == a['d']:
+            prev = next((x['s'] for x in reversed(atoms[:i]) if x['s']), '')
+            nxt = next((x['s'] for x in atoms[i + 1:] if x['s']), '')
+            if _cjk(prev[-1:]) or _cjk(nxt[:1]) or a['s'] == '·':
+                if out:
+                    out[-1] = dict(out[-1], d=out[-1]['d'] + a['d'], cues=out[-1]['cues'] + a['cues'])
+                continue
+        out.append(a)
+    return out
+
+
+LEXICON = None
+
+
+def _readings(atoms):
+    """Fix readings the voice gets wrong (多音字): 读音.json maps a phrase to the same phrase with homophones, e.g.
+    {"分饰几角": "分饰几决"}. Only the spoken text changes; the captions keep the real characters."""
+    global LEXICON
+    if LEXICON is None:
+        f = os.path.join(HERE, '读音.json')
+        LEXICON = {k: v for k, v in json.load(open(f)).items() if not k.startswith('_')} if os.path.exists(f) else {}
+    if not LEXICON:
+        return atoms
+    plain = [i for i, a in enumerate(atoms) if len(a['s']) == 1 and a['s'] == a['d']]
+    text = ''.join(atoms[i]['s'] for i in plain)
+    for k, v in LEXICON.items():
+        assert len(k) == len(v), f'读音.json: {k} -> {v} must keep the length'
+        start = 0
+        while (j := text.find(k, start)) >= 0:
+            run = plain[j:j + len(k)]
+            if run[-1] - run[0] == len(k) - 1:            # consecutive atoms, not split by a {display|reading}
+                for idx, ch in zip(run, v):
+                    atoms[idx] = dict(atoms[idx], s=ch)
+            start = j + len(k)
     return atoms
 
 
