@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/300.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/500.css">
+<link rel="stylesheet" href="node_modules/@fontsource/noto-sans-sc/900.css">
+<link rel="stylesheet" href="node_modules/@fontsource/bebas-neue/400.css">
+<link rel="stylesheet" href="node_modules/lxgw-wenkai-webfont/lxgwwenkai-regular.css">
+<link rel="stylesheet" href="node_modules/lxgw-wenkai-webfont/lxgwwenkai-bold.css">
+<style>
+/* 黑场舞台版：一支话筒、一束追光，没有旁白，字幕逐字打出 */
+:root{--bg:#09090c;--ink:#f3efe6;--dim:#8d877c;--amber:#ffb547;--red:#ff5a4e;--paper:#f4eedf}
+html,body{margin:0;background:var(--bg)}
+#stage{position:relative;width:1080px;height:1440px;overflow:hidden;background:var(--bg);font-family:"Noto Sans SC",sans-serif;color:var(--ink)}
+#wall{position:absolute;left:0;right:0;top:0;height:1130px;opacity:.5;
+  background-color:#140d0c;
+  background-image:linear-gradient(rgba(0,0,0,.55) 4px,transparent 4px),linear-gradient(90deg,rgba(0,0,0,.55) 4px,transparent 4px),linear-gradient(90deg,rgba(0,0,0,.55) 4px,transparent 4px);
+  background-size:100% 64px,150px 128px,150px 128px;background-position:0 0,0 0,75px 64px}
+#floor{position:absolute;left:0;right:0;top:1130px;bottom:0;background:linear-gradient(#1a1511,#0a0908 60%)}
+#spot{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 70% at 50% 45%,transparent 40%,rgba(0,0,0,.75) 100%)}
+#mic{position:absolute;left:0;top:0;width:1080px;height:1440px;pointer-events:none}
+#grain{position:absolute;inset:-40px;pointer-events:none;opacity:.10;mix-blend-mode:overlay}
+#layer{position:absolute;inset:0}
+.scene{position:absolute;inset:0}
+#hdr{position:absolute;left:56px;top:48px;font-family:"Bebas Neue";font-size:44px;letter-spacing:6px;color:var(--amber)}
+#hdr i{font-style:normal;color:var(--dim);margin-left:14px}
+#brand{position:absolute;right:56px;top:56px;font-size:28px;font-weight:500;letter-spacing:4px;color:var(--dim)}
+#cap{position:absolute;left:90px;right:90px;top:1170px;height:210px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:58px;font-weight:900;line-height:1.36;letter-spacing:1px;text-shadow:0 2px 18px rgba(0,0,0,.9)}
+#cap .c{opacity:0;white-space:pre-wrap}
+#cap .c.on{opacity:1}
+#cap .c.hl{color:var(--amber)}
+#cap .cur{display:inline-block;width:0;position:relative}
+#cap .cur:after{content:"";position:absolute;left:4px;top:-52px;width:5px;height:58px;background:var(--amber)}
+/* cold open */
+.timer{position:absolute;left:0;right:0;top:250px;text-align:center;font-family:"Bebas Neue";font-size:220px;letter-spacing:6px;color:var(--amber);line-height:1}
+.timer small{font-family:"Noto Sans SC";font-size:44px;font-weight:300;letter-spacing:2px;margin-left:16px;color:var(--ink)}
+.sub{position:absolute;left:0;right:0;top:490px;text-align:center;font-size:34px;font-weight:300;color:var(--dim);letter-spacing:6px}
+/* title */
+.tt{position:absolute;left:60px;right:60px;top:330px;text-align:center}
+.tt .a{font-size:104px;font-weight:900;line-height:1.15;letter-spacing:2px}
+.tt .b{margin-top:30px;font-size:44px;font-weight:300;letter-spacing:14px;color:var(--amber)}
+.tt .rule{margin:34px auto 0;height:4px;width:480px;background:var(--amber);transform-origin:50% 50%}
+/* method: four setlists */
+.sheet{position:absolute;width:200px;height:270px;background:var(--paper);border-radius:4px;box-shadow:0 18px 40px rgba(0,0,0,.6);transform-origin:50% 100%}
+.sheet .no{position:absolute;left:0;right:0;bottom:-58px;text-align:center;font-size:28px;color:var(--dim)}
+.sheet i{position:absolute;left:22px;height:7px;border-radius:4px;background:#b9b1a0}
+.sheet i.x{background:transparent}
+.sheet i.x:after{content:"";position:absolute;left:-6px;right:-6px;top:2px;height:5px;background:var(--red);transform:scaleX(var(--k,0));transform-origin:0 50%}
+.sheet b{position:absolute;left:22px;height:7px;border-radius:4px;background:#4c7bd9;transform:scaleX(var(--k,0));transform-origin:0 50%}
+.sheet u{position:absolute;right:16px;font-size:40px;font-weight:900;text-decoration:none;color:#2f9e5b;opacity:var(--k,0)}
+.flyer{position:absolute;height:9px;border-radius:5px;background:var(--red)}
+/* night: room temperature */
+.chart{position:absolute;left:0;top:0}
+.lab{position:absolute;font-size:30px;font-weight:500;white-space:nowrap}
+.gloss{position:absolute;left:0;right:0;top:170px;text-align:center;font-size:30px;font-weight:300;color:var(--dim);letter-spacing:2px}
+/* notes: a setlist taped to the floor */
+.paper{position:absolute;left:70px;top:190px;width:940px;height:930px;background:var(--paper);color:#26231e;border-radius:6px;box-shadow:0 30px 70px rgba(0,0,0,.7);
+  transform-origin:50% 50%;font-family:"LXGW WenKai";padding:56px 64px;box-sizing:border-box;
+  background-image:repeating-linear-gradient(transparent 0 79px,rgba(60,90,160,.16) 79px 81px);background-position:0 128px}
+.paper h3{margin:0 0 26px;font-size:54px;font-weight:700;color:#c8372d}
+.paper .row{position:relative;font-size:40px;line-height:80px;padding-left:46px;white-space:nowrap}
+.paper .row:before{content:"–";position:absolute;left:4px;color:#8a8578}
+.paper .row.ind{padding-left:86px;font-size:38px;color:#6e675b}
+.paper .row.ind:before{content:"";}
+.paper .c{opacity:0}.paper .c.on{opacity:1}
+.tape{position:absolute;width:150px;height:44px;background:rgba(236,224,190,.75)}
+/* next: north */
+.city{position:absolute;font-size:46px;font-weight:900;white-space:nowrap}
+.city small{display:block;font-size:26px;font-weight:300;color:var(--dim);letter-spacing:4px;margin-top:4px}
+.north{position:absolute;font-family:"Bebas Neue";font-size:64px;color:var(--amber)}
+/* end */
+.src{position:absolute;left:80px;right:80px;top:1350px;text-align:center;font-size:24px;color:var(--dim);letter-spacing:1px}
+.bigbrand{position:absolute;left:0;right:0;top:1270px;text-align:center;font-size:34px;font-weight:300;letter-spacing:16px;color:var(--dim)}
+.ask{position:absolute;left:60px;right:60px;top:220px;text-align:center;font-size:96px;font-weight:900;line-height:1.3;white-space:pre}
+.ask .c{opacity:0}.ask .c.on{opacity:1}
+</style></head>
+<body><div id="stage">
+<div id="wall"></div><div id="floor"></div><canvas id="spot" width="1080" height="1440"></canvas>
+<svg id="mic" viewBox="0 0 1080 1440"></svg>
+<div id="layer"></div><div id="vig"></div>
+<div id="cap"></div>
+<div id="hdr">OPEN MIC <i>No.20</i></div><div id="brand">子鱼脱口秀</div>
+<canvas id="grain" width="580" height="760"></canvas>
+</div>
+<script src="engine.js"></script>
+<script>
+(function () {
+  const { h, s, p, ease, clamp, lerp, rng } = E;
+  const $ = id => document.getElementById(id);
+  const AMBER = '#ffb547', RED = '#ff5a4e', INK = '#f3efe6', DIM = '#8d877c';
+  const SC = {};                       // scenes by id
+  const cue = (id, name) => SC[id].start + E.cue(SC[id], name);
+
+  // ---------- light: a warm spotlight that can move, dim and flicker ----------
+  const spot = $('spot').getContext('2d');
+  function light(x, y, r, a) {
+    spot.clearRect(0, 0, 1080, 1440);
+    const g = spot.createRadialGradient(x, y, 10, x, y, r);
+    g.addColorStop(0, `rgba(255,214,150,${(0.42 * a).toFixed(3)})`);
+    g.addColorStop(0.45, `rgba(255,190,120,${(0.16 * a).toFixed(3)})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    spot.fillStyle = g; spot.fillRect(0, 0, 1080, 1440);
+    // the pool of light on the floor
+    spot.save(); spot.translate(x, 1215); spot.scale(1, 0.18);
+    const f = spot.createRadialGradient(0, 0, 10, 0, 0, 330);
+    f.addColorStop(0, `rgba(255,205,140,${(0.34 * a).toFixed(3)})`); f.addColorStop(1, 'rgba(0,0,0,0)');
+    spot.fillStyle = f; spot.beginPath(); spot.arc(0, 0, 330, 0, 7); spot.fill(); spot.restore();
+  }
+
+  // ---------- the microphone ----------
+  const mic = $('mic');
+  const micG = s('g', {});
+  micG.append(
+    s('line', { x1: 540, y1: 640, x2: 540, y2: 1200, stroke: '#2b2622', 'stroke-width': 12, 'stroke-linecap': 'round' }),
+    s('line', { x1: 540, y1: 1200, x2: 450, y2: 1236, stroke: '#2b2622', 'stroke-width': 10, 'stroke-linecap': 'round' }),
+    s('line', { x1: 540, y1: 1200, x2: 630, y2: 1236, stroke: '#2b2622', 'stroke-width': 10, 'stroke-linecap': 'round' }),
+    s('line', { x1: 540, y1: 1200, x2: 540, y2: 1244, stroke: '#2b2622', 'stroke-width': 10, 'stroke-linecap': 'round' }),
+    s('rect', { x: 524, y: 600, width: 32, height: 70, rx: 8, fill: '#1d1a18', stroke: '#3a332d', 'stroke-width': 3 }),
+    s('ellipse', { cx: 540, cy: 566, rx: 40, ry: 52, fill: '#3b3631', stroke: '#6d655b', 'stroke-width': 3 }),
+    s('path', { d: 'M506 548 Q540 538 574 548 M502 566 Q540 556 578 566 M506 584 Q540 574 574 584', stroke: '#7f776b', 'stroke-width': 2.4, fill: 'none' }),
+    s('ellipse', { cx: 526, cy: 546, rx: 10, ry: 16, fill: 'rgba(255,230,190,.35)' }),
+    s('path', { d: 'M540 1200 Q600 1250 700 1262 T900 1300', stroke: '#1c1916', 'stroke-width': 7, fill: 'none' })
+  );
+  mic.append(micG);
+
+  // ---------- typed captions ----------
+  const cap = $('cap');
+  let capKey = null, capChars = [], capCur = h('span', { class: 'cur' });
+  function caption(t) {
+    const st = E.sayAt(t);
+    if (!st || (st.scene.data && st.scene.data.nocap)) { cap.style.opacity = 0; return; }
+    if (capKey !== st.start) {
+      capKey = st.start; capChars = [];
+      cap.replaceChildren();
+      const wrap = h('span', {});
+      st.tokens.forEach(tk => {
+        const el = h('span', { class: 'c' + (tk.hl ? ' hl' : ''), text: tk.d + tk.p });
+        el._t = tk.t0; capChars.push(el); wrap.append(el);
+      });
+      wrap.append(capCur); cap.append(wrap);
+    }
+    let last = null;
+    for (const el of capChars) { const on = t >= el._t; el.classList.toggle('on', on); if (on) last = el; }
+    const typing = last !== capChars[capChars.length - 1];
+    if (last && capCur.previousSibling !== last) last.after(capCur);
+    capCur.style.opacity = typing || Math.floor(t * 2.2) % 2 === 0 ? 1 : 0;
+    cap.style.opacity = Math.min(p(t, st.start - 0.05, 0.12), 1 - p(t, st.end - 0.1, 0.3));
+  }
+
+  // ---------- scenes ----------
+  const scenes = {};
+
+  scenes.cold = (sc, el) => {
+    const timer = h('div', { class: 'timer' }), sub = h('div', { class: 'sub', text: '观众没反应' });
+    el.append(timer, sub);
+    return lt => {
+      const st = sc.steps.find(x => x.kind === 'clip'); const t0 = st.start - sc.start;
+      const k = clamp((lt - t0) / 2.0, 0, 1);
+      timer.style.opacity = lt >= t0 - 0.05 ? (lt < t0 + 2.6 ? 1 : 1 - p(lt, t0 + 2.6, 0.5)) * 1 : 0;
+      timer.innerHTML = (k * 2).toFixed(1) + '<small>秒</small>';
+      sub.style.opacity = 0;
+    };
+  };
+
+  scenes.title = (sc, el) => {
+    const a = h('div', { class: 'a', text: sc.data.a }), b = h('div', { class: 'b', text: sc.data.b }), r = h('div', { class: 'rule' });
+    const box = h('div', { class: 'tt' }, a, r, b);
+    el.append(box);
+    return lt => {
+      const k = p(lt, 0.1, 0.7), out = 1 - p(lt, sc.dur - 0.5, 0.5);
+      a.style.opacity = k * out; a.style.transform = `translateY(${(1 - k) * 30}px)`;
+      a.style.letterSpacing = lerp(20, 2, k) + 'px';
+      r.style.transform = `scaleX(${p(lt, 0.5, 0.6)})`; r.style.opacity = out;
+      b.style.opacity = p(lt, 0.9, 0.6) * out;
+    };
+  };
+
+  scenes.method = (sc, el) => {
+    const xs = [96, 334, 572, 810], rot = [-5, -1.5, 2, 5.5], sheets = [];
+    const W = [150, 120, 156, 104, 140];
+    xs.forEach((x, i) => {
+      const lines = W.map((w, j) => h('i', { class: j === 1 + (i % 3) && i < 3 ? 'x' : '', style: { top: (40 + j * 40) + 'px', width: w + 'px' } }));
+      const add = i < 3 ? h('b', { style: { top: (40 + (1 + (i % 3)) * 40 + 18) + 'px', width: (W[1 + (i % 3)] * 0.8) + 'px' } }) : null;
+      const ok = i === 1 ? h('u', { text: '✓', style: { top: '26px' } }) : null;
+      const sh = h('div', { class: 'sheet', style: { left: x + 'px', top: '300px' } }, ...lines, add, ok, h('div', { class: 'no', text: '第' + '一二三四'[i] + '场' }));
+      el.append(sh); sheets.push({ sh, lines, add, ok });
+    });
+    const fly = h('div', { class: 'flyer', style: { left: (810 + 22) + 'px', top: (300 + 40 + 3 * 40) + 'px', width: '104px' } });
+    el.append(fly);
+    return (lt, t) => {
+      const c = n => E.cue(sc, n);
+      sheets.forEach((o, i) => {
+        const k = p(lt, c('m0') + 0.3 + i * 0.35, 0.6, ease.back);
+        o.sh.style.opacity = clamp(k * 2); o.sh.style.transform = `translateY(${(1 - k) * 60}px) rotate(${rot[i] * k}deg)`;
+        o.lines.forEach(l => { if (l.classList.contains('x')) l.style.setProperty('--k', p(lt, c('fix') + 0.2 + i * 0.3, 0.35)); });
+        if (o.add) o.add.style.setProperty('--k', p(lt, c('retry') + 0.1 + i * 0.3, 0.4));
+        if (o.ok) o.ok.style.setProperty('--k', p(lt, c('good') + 0.2, 0.3));
+      });
+      // the line that never worked: struck through on the last sheet, then thrown away
+      const ks = p(lt, c('stuck') + 0.3, 0.4), kd = p(lt, c('drop') + 0.5, 1.1, ease.in);
+      fly.style.opacity = ks * (1 - kd);
+      fly.style.transform = `translate(${kd * 260}px, ${kd * 700}px) rotate(${kd * 140}deg) scaleX(${ks})`;
+      fly.style.transformOrigin = '0 50%';
+      const out = 1 - p(lt, sc.dur - 0.5, 0.5);
+      el.style.opacity = out;
+    };
+  };
+
+  scenes.night = (sc, el) => {
+    const X0 = 130, X1 = 970, Y0 = 290, Y1 = 900;
+    const svg = s('svg', { class: 'chart', width: 1080, height: 1100 });
+    const ax = s('path', { d: `M${X0} ${Y0} L${X0} ${Y1} L${X1} ${Y1}`, stroke: 'rgba(243,239,230,.45)', 'stroke-width': 3, fill: 'none' });
+    const P = pts => pts.map((q, i) => (i ? 'L' : 'M') + q[0] + ' ' + q[1]).join(' ');
+    const sm = pts => { let d = `M${pts[0][0]} ${pts[0][1]}`; for (let i = 1; i < pts.length - 1; i++) d += ` Q${pts[i][0]} ${pts[i][1]} ${(pts[i][0] + pts[i + 1][0]) / 2} ${(pts[i][1] + pts[i + 1][1]) / 2}`; const l = pts[pts.length - 1]; return d + ` L${l[0]} ${l[1]}`; };
+    const seg = (pts, color, w) => s('path', { d: sm(pts), stroke: color, 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round', pathLength: 1, 'stroke-dasharray': '1 1' });
+    const s1 = seg([[X0 + 10, 480], [230, 440], [330, 456], [420, 500]], INK, 7);
+    const s2 = seg([[420, 500], [500, 620], [580, 760], [650, 840], [700, 852]], INK, 7);
+    const s3 = seg([[700, 852], [770, 760], [840, 620], [900, 520], [960, 470]], AMBER, 9);
+    const gh = s('path', { d: sm([[700, 852], [790, 872], [880, 884], [960, 888]]), stroke: 'rgba(243,239,230,.5)', 'stroke-width': 4, fill: 'none', 'stroke-dasharray': '10 12' });
+    const marks = [[480, 590], [545, 690], [610, 780]].map(([x, y]) => s('text', { x: x + 26, y: y - 6, fill: RED, 'font-size': 40, 'font-weight': 900, 'font-family': 'Noto Sans SC', text: '×' }));
+    const dot = s('circle', { cx: 650, cy: 840, r: 11, fill: RED });
+    svg.append(ax, gh, s1, s2, s3, dot, ...marks);
+    const lab = (txt, x, y, color, size = 30) => { const e = h('div', { class: 'lab', text: txt, style: { left: x + 'px', top: y + 'px', color, fontSize: size + 'px' } }); el.append(e); return e; };
+    el.append(svg);
+    const gloss = h('div', { class: 'gloss', html: '刨梗：观众抢先把包袱说出来了' }); el.append(gloss);
+    const ly = lab('场子温度', X0 + 18, Y0 - 10, DIM, 28), lx = lab('时间 →', X1 - 100, Y1 + 14, DIM, 26);
+    const l1 = lab('前几分钟还行', 190, 380, INK), l2 = lab('掉下去了', 330, 720, RED, 36), lb = lab('断片', 620, 870, RED, 26);
+    const l3 = lab('新写的段子\n缓了过来', 760, 360, AMBER, 34); l3.style.whiteSpace = 'pre'; l3.style.lineHeight = 1.3;
+    const l4 = lab('以前：掉下去就上不来', 520, 954, DIM, 28);
+    const show = (e, k) => { e.style.opacity = k; };
+    return lt => {
+      const c = n => E.cue(sc, n);
+      const kg = p(lt, c('pao') + 0.8, 0.4) * (1 - p(lt, c('c1') - 0.2, 0.4));
+      show(gloss, kg);
+      const ka = p(lt, c('c1') - 0.6, 0.5);
+      ax.style.opacity = ka; show(ly, ka); show(lx, ka);
+      s1.style.strokeDashoffset = 1 - p(lt, c('c1'), 1.4, ease.io); show(l1, p(lt, c('c1') + 0.8, 0.4));
+      s2.style.strokeDashoffset = 1 - p(lt, c('c2'), 1.6, ease.io); show(l2, p(lt, c('c2') + 0.9, 0.4));
+      marks.forEach((m, i) => m.style.opacity = p(lt, c('c2') + 0.4 + i * 0.35, 0.2));
+      dot.style.opacity = p(lt, c('c2') + 1.4, 0.2); show(lb, p(lt, c('c2') + 1.5, 0.3));
+      s3.style.strokeDashoffset = 1 - p(lt, c('c3') + 0.4, 2.2, ease.io); show(l3, p(lt, c('c3') + 2.0, 0.5));
+      gh.style.opacity = p(lt, c('c4') + 0.3, 0.6); show(l4, p(lt, c('c4') + 0.8, 0.5));
+      el.style.opacity = 1 - p(lt, sc.dur - 0.5, 0.5);
+    };
+  };
+
+  scenes.notes = (sc, el) => {
+    const paper = h('div', { class: 'paper' }, h('h3', { text: sc.data.head }));
+    const rows = sc.steps.filter(x => x.kind === 'say').map((st, i) => {
+      const row = h('div', { class: 'row' + (i === 1 || i === 6 ? ' ind' : '') });
+      st.tokens.forEach(tk => { const c = h('span', { class: 'c', text: tk.d + tk.p }); c._t = tk.t0; row.append(c); });
+      paper.append(row); return row;
+    });
+    const t1 = h('i', { class: 'tape', style: { left: '-40px', top: '-14px', transform: 'rotate(-32deg)' } });
+    const t2 = h('i', { class: 'tape', style: { right: '-40px', top: '-14px', transform: 'rotate(30deg)' } });
+    paper.append(t1, t2);
+    el.append(paper);
+    const hl = h('div', { style: { position: 'absolute', left: '132px', top: '346px', width: '370px', height: '22px', background: 'rgba(255,200,60,.65)', transformOrigin: '0 50%', mixBlendMode: 'multiply' } });
+    el.append(hl);
+    return (lt, t) => {
+      const k = p(lt, 0, 0.7, ease.out), out = 1 - p(lt, sc.dur - 0.5, 0.5);
+      paper.style.opacity = k * out; paper.style.transform = `translateY(${(1 - k) * 80}px) rotate(${-1.2 + (1 - k) * 3}deg)`;
+      for (const row of rows) for (const c of row.children) c.classList.toggle('on', t >= c._t);
+      const kh = p(t, sc.steps[0].end - 0.6, 0.4);
+      hl.style.opacity = kh * k * out; hl.style.transform = `rotate(-1.2deg) scaleX(${kh})`;
+    };
+  };
+
+  scenes.next = (sc, el) => {
+    const svg = s('svg', { class: 'chart', width: 1080, height: 1100 });
+    const route = s('path', { d: 'M540 960 C 500 820, 600 700, 560 560 S 520 360, 540 300', stroke: AMBER, 'stroke-width': 6, fill: 'none', 'stroke-dasharray': '2 18', 'stroke-linecap': 'round' });
+    const len = 760;
+    const mask = s('path', { d: 'M540 960 C 500 820, 600 700, 560 560 S 520 360, 540 300', stroke: '#000', 'stroke-width': 0, fill: 'none' });
+    const a = s('circle', { cx: 540, cy: 960, r: 14, fill: INK }), b = s('circle', { cx: 540, cy: 300, r: 16, fill: AMBER });
+    const head = s('circle', { r: 12, fill: AMBER });
+    svg.append(route, mask, a, b, head);
+    el.append(svg);
+    const ca = h('div', { class: 'city', style: { left: '590px', top: '930px' } }, '慕尼黑', h('small', { text: 'MÜNCHEN' }));
+    const cb = h('div', { class: 'city', style: { left: '590px', top: '268px', color: AMBER } }, '汉堡', h('small', { text: 'HAMBURG · 拼盘 #2' }));
+    const n = h('div', { class: 'north', text: 'N ↑', style: { left: '170px', top: '260px' } });
+    el.append(ca, cb, n);
+    return lt => {
+      const c = nm => E.cue(sc, nm);
+      const k0 = p(lt, c('h0') + 0.2, 0.5), k1 = p(lt, c('h1'), 0.5), kr = p(lt, c('h2'), 2.4, ease.io);
+      a.style.opacity = k0; ca.style.opacity = k0;
+      b.style.opacity = k1; cb.style.opacity = k1;
+      route.style.opacity = kr > 0 ? 1 : 0;
+      const pt = mask.getPointAtLength(mask.getTotalLength() * kr);
+      route.style.clipPath = `inset(${(pt.y - 10).toFixed(1)}px 0 0 0)`;
+      head.setAttribute('cx', pt.x); head.setAttribute('cy', pt.y); head.style.opacity = kr > 0 && kr < 1 ? 1 : 0;
+      n.style.opacity = p(lt, c('h2') + 1.0, 0.6);
+      el.style.opacity = 1 - p(lt, sc.dur - 0.4, 0.4);
+    };
+  };
+
+  scenes.end = (sc, el) => {
+    const src = h('div', { class: 'src', text: '原文：' + E.TL.meta.title + ' · 2026.11.22' });
+    const br = h('div', { class: 'bigbrand', text: '子鱼脱口秀' });
+    const ask = h('div', { class: 'ask' }), st = sc.steps.find(x => x.kind === 'say');
+    const cs = st.tokens.map(tk => { const c = h('span', { class: 'c', text: tk.d + tk.p }); c._t = tk.t0; ask.append(c); return c; });
+    el.append(ask, br, src);
+    return (lt, t) => {
+      src.style.opacity = p(lt, 0.4, 0.6); br.style.opacity = p(lt, E.cue(sc, 'ask') + 1.6, 0.8);
+      for (const c of cs) c.classList.toggle('on', t >= c._t);
+    };
+  };
+
+  // ---------- grain ----------
+  const gr = $('grain').getContext('2d'), GR = [0, 1, 2].map(i => {
+    const r = rng(20 + i), im = gr.createImageData(580, 760);
+    for (let j = 0; j < im.data.length; j += 4) { const v = r() * 255; im.data[j] = im.data[j + 1] = im.data[j + 2] = v; im.data[j + 3] = 255; }
+    return im;
+  });
+
+  E.start({
+    fonts: ['300 40px "Noto Sans SC"', '500 40px "Noto Sans SC"', '900 40px "Noto Sans SC"', '400 40px "Bebas Neue"', '400 40px "LXGW WenKai"', '700 40px "LXGW WenKai"'],
+    extraText: '0123456789.秒观众没反应刨梗：观众抢先把包袱说出来了场子温度时间→前几分钟还行掉下去了断片新写的段子缓了过来以前：掉下去就上不来慕尼黑汉堡MÜNCHENHAMBURG·拼盘#2N↑原文子鱼脱口秀第一二三四场✓×–',
+    layer: $('layer'),
+    init(stage, TL) { TL.scenes.forEach(sc => SC[sc.id] = sc); },
+    scenes,
+    frame(t) {
+      // where the light is and how bright
+      let x = 540, y = 560, r = 720, a = 1;
+      const tb = SC.cold.steps.find(st => st.kind === 'clip');
+      a *= p(t, 0.2, 1.2);                                                  // lights up at the start
+      if (t > tb.start && t < tb.end + 0.6) a *= 0.62 + 0.08 * Math.sin(t * 23) * Math.sin(t * 7);   // the blank: dim, unsteady
+      const nt = SC.night;
+      if (t >= nt.start) { const k1 = p(t, cue('night', 'c2'), 1.2), k2 = p(t, cue('night', 'c3') + 0.4, 1.6); a *= 1 - 0.42 * k1 * (1 - k2); }
+      if (t >= SC.notes.start - 0.5 && t < SC.notes.end) { const k = p(t, SC.notes.start - 0.5, 0.8) * (1 - p(t, SC.notes.end - 0.6, 0.6)); y = lerp(560, 640, k); r = lerp(720, 900, k); }
+      if (t >= SC.next.start) { const k = p(t, cue('next', 'h2'), 2.4, ease.io); y = lerp(560, 300, k) ; }
+      if (t >= SC.end.start) { a *= 1 - 0.55 * p(t, SC.end.start, 1.0); }
+      a *= 1 - p(t, E.TL.dur - 1.2, 1.2);
+      light(x, y, r, a);
+      // the mic fades back when a chart, a sheet or the setlist needs the space
+      let m = 1;
+      for (const id of ['title', 'method', 'night', 'notes', 'next']) { const sc = SC[id]; m = Math.min(m, 1 - p(t, sc.start - 0.3, 0.5) * (1 - p(t, sc.end - 0.4, 0.5))); }
+      micG.style.opacity = (0.12 + 0.88 * m) * clamp(a * 1.3);
+      $('wall').style.opacity = 0.25 + 0.3 * a;
+      $('grain').getContext('2d').putImageData(GR[Math.floor(t * 12) % 3], 0, 0);
+      $('hdr').style.opacity = p(t, 0.6, 0.8); $('brand').style.opacity = p(t, 0.6, 0.8);
+    },
+    after(t) { caption(t); },
+  });
+})();
+</script></body></html>

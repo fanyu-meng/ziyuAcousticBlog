@@ -206,7 +206,8 @@ html,body{margin:0;background:var(--paper)}
     const bl = $('bline'); const r = rng(4), pts = [];
     for (let x = 0; x <= 1080; x += 18) pts.push([x, 6 + (r() - 0.5) * 3]);
     bl.append(s('path', { d: pathD(pts), stroke: 'rgba(43,42,40,.35)', 'stroke-width': 2, fill: 'none' }));
-    refs.innerHTML = '<b>参考</b>　' + E.TL.scenes[E.TL.scenes.length - 1].data.refs.join('<br>');
+    refs.innerHTML = '<b>' + (E.TL.meta.refsLabel || '参考') + '</b>　' + E.TL.scenes[E.TL.scenes.length - 1].data.refs.join('<br>');
+    if (E.TL.meta.brand) $('brand').textContent = E.TL.meta.brand;
   }
 
   const scenes = { default: (sc, el) => { const f = SEC[sc.type]; if (!f) console.error('no section ' + sc.type); const K = kit(sc, Y, PAGE); Y += f ? f(K, sc) : 0; return () => {}; } };
