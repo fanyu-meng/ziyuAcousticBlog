@@ -110,7 +110,8 @@
     const rows = D.items.map((it, i) => h('div', { class: 'w4-li' }, h('b', { text: String(i + 1) }), h('span', { text: it.t }), it.s ? h('em', { text: it.s }) : null));
     const bars = Array.from({ length: 24 }, () => h('i'));
     const eq = D.clip ? h('div', { class: 'w4-eq' }, ...bars) : null;
-    el.append(h('div', { class: 'w4-list', style: { gridTemplateColumns: `repeat(${D.cols || 1}, 1fr)` } }, ...rows), eq);
+    el.append(h('div', { class: 'w4-list', style: { gridTemplateColumns: `repeat(${D.cols || 1}, 1fr)` } }, ...rows));
+    if (eq) el.append(eq);
     const own = D.clip ? clipSteps(sc).find(x => x.clip === D.clip) : null;
     return (lt, t) => {
       let cur = -1;
@@ -167,7 +168,8 @@
     };
     const cols = D.items.map(it => h('div', { class: 'w4-attr' }, h('b', { text: it.name }), h('i', { text: it.en }), wave(it.kind), h('span', { text: it.desc })));
     const note = D.note ? h('div', { class: 'w4-note', text: D.note[0] }) : null;
-    el.append(h('div', { class: 'w4-attrs' }, ...cols), note);
+    el.append(h('div', { class: 'w4-attrs' }, ...cols));
+    if (note) el.append(note);
     return lt => {
       cols.forEach((c, i) => { const k = p(lt, cue(sc, D.items[i].cue, 0.3 + i * 0.4), 0.45, ease.back); pop(c, k, 0.8); c.classList.toggle('cur', k > 0 && (i + 1 >= cols.length || lt < cue(sc, D.items[i + 1].cue, 99))); });
       if (note) pop(note, p(lt, cue(sc, D.note[1], 99), 0.4, ease.back), 0.7);

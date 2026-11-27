@@ -51,9 +51,12 @@ def main():
     shutil.copy2(mp4, f'{d}/{os.path.basename(mp4)}')
 
     # cover: one moment of the video, with the caption bubble replaced by the article title
-    mode = 'vibe' if mod.PAGE == 'vibe.html' else 'quiz'
-    sub = X.get('cover_sub', '')
-    subprocess.run(['node', f'{HERE}/cover2.cjs', f'{HERE}/web/{mod.PAGE}', f'{out}/timeline.js', f'{d}/封面.jpg', str(X['cover_t']), mode, title, sub], check=True)
+    if mod.PAGE == 'notes.html':            # notebook style: the finished page zoomed out, with a note card carrying the title
+        subprocess.run(['node', f'{HERE}/cover_notes.cjs', f'{out}/timeline.js', f'{d}/封面.jpg', json.dumps(X['cover'], ensure_ascii=False)], check=True)
+    else:
+        mode = 'vibe' if mod.PAGE == 'vibe.html' else 'quiz'
+        sub = X.get('cover_sub', '')
+        subprocess.run(['node', f'{HERE}/cover2.cjs', f'{HERE}/web/{mod.PAGE}', f'{out}/timeline.js', f'{d}/封面.jpg', str(X['cover_t']), mode, title, sub], check=True)
 
     dur = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp4]))
     lines = [f'# {title}', '',
