@@ -25,7 +25,7 @@ python3 build.py <稿子名>                           # 出片，约 3 分钟
 - `render.cjs`：用 Playwright 逐帧截图。
 - `cover2.cjs`：用某一时刻的画面做封面。
 - `compare.py`、`sheet.py`：做对照图和缩略图，检查画面用。
-- `web/`：三种风格的页面（`vibe.html` 是 A，`caps.html` 是 B，`quiz.html` 是 C）、动画引擎 `engine.js`、三组画面组件。脱口秀复盘另有 `stage.html`（黑场舞台，无旁白）和 `punch.html`（大字幕快剪，卡片按内容画）。
+- `web/`：三种风格的页面（`vibe.html` 是 A，`caps.html` 是 B，`quiz.html` 是 C）、动画引擎 `engine.js`、三组画面组件。E 风格是 `punch.html`，每篇的卡片在 `web/punch/<key>.js`。脱口秀复盘试做时另有 `stage.html`（黑场舞台，无旁白）。
 - `scripts/`：每篇文章一个素材模块（如 `doppler.py`），每种风格一份稿子（如 `doppler_vibe.py`、`doppler_quiz.py`）。
 
 ## 旁白标记

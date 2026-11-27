@@ -7,7 +7,7 @@
 import synth
 from scripts.standup20 import *
 
-META = dict(title=TITLE, brand='子鱼脱口秀', tag='#20 复盘',
+META = dict(punch='standup20', title=TITLE, brand='子鱼脱口秀', tag='#20 复盘',
             chapters=[('method', '一稿四场'), ('night', '这一场'), ('lessons', '记下来的'), ('next', '下一站')])
 PAGE, OUTPUT = 'punch.html', '开放麦20复盘_大字幕快剪版'
 VOICE, RATE = 'zh-CN-YunjianNeural', '+30%'
