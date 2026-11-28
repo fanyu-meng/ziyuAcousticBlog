@@ -57,7 +57,7 @@ def main():
         if X['cover_t'] in (None, 'pick'):      # default: the countdown of the first question, before anything is revealed
             TL = json.loads(open(f'{out}/timeline.js').read()[len('window.TL='):-1])
             X['cover_t'] = next(st['start'] + 0.5 for sc in TL['scenes'] for st in sc['steps'] if st['kind'] == 'wait' and st.get('name') == 'pick')
-        mode = 'vibe' if mod.PAGE == 'vibe.html' else 'quiz'
+        mode = {'vibe.html': 'vibe', 'caps.html': 'caps'}.get(mod.PAGE, 'quiz')
         sub = X.get('cover_sub', '')
         subprocess.run(['node', f'{HERE}/cover2.cjs', f'{HERE}/web/{mod.PAGE}', f'{out}/timeline.js', f'{d}/封面.jpg', str(X['cover_t']), mode, title, sub], check=True)
 

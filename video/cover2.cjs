@@ -13,6 +13,10 @@ const [page, tl, out, t, mode, text, sub] = process.argv.slice(2);
       cap.replaceChildren();
       cap.style.cssText += ';opacity:1;flex-direction:column;gap:14px;font-weight:900';
       cap.innerHTML = `<div style="font-size:64px;color:#7df7c9;text-shadow:0 0 24px rgba(125,247,201,.5)">${text}</div><div style="font-size:40px;color:#dbe8f4;font-weight:500">${sub}</div>`;
+    } else if (mode === 'caps') {
+      cap.replaceChildren();
+      cap.style.cssText += ';opacity:1;transform:none';
+      cap.innerHTML = `<div style="font-size:70px;line-height:1.25;font-weight:900;color:#111;background:#ffe600;padding:14px 26px;border:6px solid #111;border-radius:22px;box-shadow:10px 10px 0 #111">${text}</div>` + (sub ? `<div style="font-size:38px;font-weight:700;margin-top:18px">${sub}</div>` : '');
     } else {
       cap.replaceChildren();
       cap.style.cssText += ';opacity:1;font-size:54px;line-height:1.3';

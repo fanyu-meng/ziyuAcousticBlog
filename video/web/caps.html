@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="node_modules/@fontsource/anton/400.css">
 <link rel="stylesheet" href="node_modules/@fontsource/zcool-qingke-huangyou/400.css">
 <link rel="stylesheet" href="widgets.css">
+<link rel="stylesheet" href="widgets2.css">
+<link rel="stylesheet" href="widgets3.css">
+<link rel="stylesheet" href="widgets4.css">
 <style>
 /* Style B：大字幕快剪风 —— 亮色、粗描边卡片、逐词弹出的大字幕 */
 :root{--c-bg:#fff;--c-fg:#111;--c-dim:#676767;--c-line:#111;--c-grid:#e4e4e4;--c-440:#2463ff;--c-432:#ff7a1a;--c-acc:#ff2e63;--c-bad:#e3002b;
@@ -80,17 +83,27 @@ html,body{margin:0;background:var(--paper)}
 .ot-pick{display:flex;gap:26px;margin:44px 0 30px}
 .ot-btn{flex:1;font-family:"Anton";font-size:150px;line-height:1;color:#fff;text-align:center;padding:26px 0 34px;border:7px solid #111;border-radius:26px;box-shadow:10px 10px 0 #111;-webkit-text-stroke:4px #111;paint-order:stroke fill}
 .ot-btn.a{background:var(--c-440)}.ot-btn.b{background:var(--c-432)}
+/* generic scenes for any article: opening, knowledge card, ending */
+.bh{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:26px}
+.bh-l{align-self:flex-start;font-family:"ZCOOL QingKe HuangYou","Noto Sans SC";font-size:118px;line-height:1.08;color:#fff;padding:14px 34px 22px;border:8px solid #111;border-radius:26px;box-shadow:14px 14px 0 #111;-webkit-text-stroke:4px #111;paint-order:stroke fill;background:var(--c-432)}
+.bh-l.b{background:var(--c-440);align-self:flex-end}.bh-l.c{background:var(--c-acc)}.bh-l.y{background:var(--yel);color:#111;-webkit-text-stroke:0}
+.bh .bubs{position:static}
+.ot-big{display:flex;gap:26px;margin:40px 0 26px}
+.ot-big div{flex:1;font-size:64px;font-weight:900;line-height:1.15;color:#fff;text-align:center;padding:22px 10px 26px;border:7px solid #111;border-radius:26px;box-shadow:10px 10px 0 #111}
+.ot-big .a{background:var(--c-440)}.ot-big .b{background:var(--c-432)}
+.card .w4-figs,.card .w4-list,.card .w4-quotes{color:#111}
+.card .ab{padding-top:18px}
 </style></head>
 <body><div id="stage"><div id="hdr"><span>432Hz</span><i>vs</i><span>440Hz</span></div><div id="brand">子鱼说声学</div><div id="segs"></div>
 <div id="layer"></div><div id="emoji"></div><div id="cap"></div><div id="foot">声学科普 · 原文带参考资料</div></div>
-<script src="engine.js"></script><script src="widgets.js"></script>
+<script src="engine.js"></script><script src="widgets.js"></script><script src="widgets2.js"></script><script src="widgets3.js"></script><script src="widgets4.js"></script>
 <script>
 (function () {
   const { h, s, p, ease, clamp, lerp } = E;
   const INFO = { hook: ['', '', '🤔'], pitch: ['01', '标准音是什么', '🎹'], legend: ['02', '432 的各种说法', '🔍'], exp: ['03', '教授做了个实验', '🧪'], result: ['04', '实验结果', '📊'], ab: ['05', '自己听一听', '🎧'], jnd: ['06', '耳朵能分辨多细', '👂'], outro: ['', '', '💬'] };
   const CHAPS = [['开场', ['hook']], ['标准音', ['pitch']], ['说法', ['legend']], ['实验', ['exp', 'result']], ['试听', ['ab']], ['耳朵', ['jnd']], ['结论', ['outro']]];
   const card = name => (sc, el) => {
-    const inf = INFO[sc.type];
+    const inf = (sc.data && sc.data.tag) || INFO[sc.type];
     const box = h('div', { class: 'card' }), tag = h('div', { class: 'tagl' }, h('small', { text: inf[0] }), inf[1]);
     el.append(box, tag);
     const up = W[name](box, sc);
@@ -111,6 +124,35 @@ html,body{margin:0;background:var(--paper)}
         const tg = E.cue(sc, 'go', 99), out = 1 - p(lt, tg - 0.15, 0.2);
         bubs.forEach((e, i) => { const k = p(lt, E.cue(sc, e._c, 99), 0.3, ease.back); e.style.opacity = clamp(k * 3) * out; e.style.transform = `scale(${0.5 + 0.5 * k}) rotate(${[-2, 1.5, -1][i]}deg)`; });
         const kg = p(lt, tg, 0.35, ease.back); go.style.opacity = clamp(kg * 3); go.style.transform = `scale(${0.8 + 0.2 * kg}) rotate(-1.5deg)`;
+      };
+    },
+    w: (sc, el) => card(sc.data.widget)(sc, el),
+    bhook: (sc, el) => {                       // data: {lines:[[html, colour a|b|c|y, cue]], bubs:[[text, cue]], go:[text, cue]}
+      const D = sc.data;
+      const ls = D.lines.map(l => h('div', { class: 'bh-l ' + (l[1] || ''), html: l[0] }));
+      const bubs = (D.bubs || []).map(c => h('div', { class: 'bub', text: c[0] }));
+      const go = D.go ? h('div', { class: 'hgo', text: D.go[0], style: { position: 'static' } }) : null;
+      el.append(h('div', { class: 'bh' }, ...ls, h('div', { class: 'bubs' }, ...bubs), go));
+      return lt => {
+        ls.forEach((e, i) => { const k = p(lt, E.cue(sc, D.lines[i][2], 0.2 + i * 0.5) - 0.1, 0.4, ease.back); e.style.opacity = clamp(k * 3); e.style.transform = `rotate(${(i % 2 ? 2.5 : -3) - (1 - k) * 8}deg) scale(${0.6 + 0.4 * k})`; });
+        const tg = D.go ? E.cue(sc, D.go[1], 99) : 99;
+        bubs.forEach((e, i) => { const k = p(lt, E.cue(sc, D.bubs[i][1], 99), 0.3, ease.back); e.style.opacity = clamp(k * 3); e.style.transform = `scale(${0.5 + 0.5 * k}) rotate(${[-2, 1.5, -1, 2][i % 4]}deg)`; });
+        if (go) { const kg = p(lt, tg, 0.35, ease.back); go.style.opacity = clamp(kg * 3); go.style.transform = `scale(${0.8 + 0.2 * kg}) rotate(-1.5deg)`; }
+      };
+    },
+    bout: (sc, el) => {                        // data: {concl, big:[a, b], sources}
+      const D = sc.data;
+      const concl = h('div', { class: 'ot-concl', text: D.concl });
+      const big = D.big ? D.big.map((t, i) => h('div', { class: i ? 'b' : 'a', text: t })) : [];
+      const srcBox = h('div');
+      const box = h('div', { class: 'ot' }, concl, big.length ? h('div', { class: 'ot-big' }, ...big) : null, srcBox);
+      el.append(box); sc.card = box;
+      const us = W.sources(srcBox, sc);
+      return lt => {
+        const kc = p(lt, E.cue(sc, 'concl', 0.2), 0.35, ease.back); concl.style.opacity = clamp(kc * 3); concl.style.transform = `rotate(-2deg) scale(${0.8 + 0.2 * kc})`;
+        const ta = E.cue(sc, 'ask', 3);
+        big.forEach((e, i) => { const k = p(lt, ta + 0.25 + i * 0.35, 0.35, ease.back); e.style.opacity = clamp(k * 3); e.style.transform = `scale(${0.7 + 0.3 * k}) rotate(${(i ? 2 : -2) + Math.sin(lt * 4 + i * 2) * 1.5}deg)`; });
+        us(lt);
       };
     },
     pitch: card('pitch'), legend: card('legend'), exp: card('exp'), result: card('chart'), ab: card('ab'), jnd: card('jnd'),
@@ -137,10 +179,13 @@ html,body{margin:0;background:var(--paper)}
     layer: document.getElementById('layer'),
     init(stage, TL) {
       emo = document.getElementById('emoji');
+      const M = TL.meta || {};
+      if (M.hdr) document.getElementById('hdr').innerHTML = M.hdr;
+      if (M.chaps) CHAPS.splice(0, CHAPS.length, ...M.chaps);
       cap = E.Captions(document.getElementById('cap'), { max: 8.6, wordDur: 0.16, wordEase: ease.back });
       const box = document.getElementById('segs');
       CHAPS.forEach(([name, types]) => {
-        const ss = TL.scenes.filter(x => types.includes(x.type)); if (!ss.length) return;
+        const ss = TL.scenes.filter(x => types.includes(x.type) || types.includes(x.id)); if (!ss.length) return;
         const a = ss[0].start, b = ss[ss.length - 1].end, fill = h('b');
         const lab = h('div', { class: 'segl', text: name });
         const wrap = h('div', { style: `flex:${(b - a).toFixed(2)};position:relative` }, h('div', { class: 'seg', style: 'width:100%;box-sizing:border-box' }, fill), lab);
@@ -158,10 +203,10 @@ html,body{margin:0;background:var(--paper)}
       if (sc.card) sc.card.style.transform = `scale(${(0.9 + 0.1 * k) * (1 + 0.014 * bump)}) rotate(${(1 - k) * -2}deg)`;
       if (sc.tag) { const kt = p(lt, 0.12, 0.3, ease.back); sc.tag.style.opacity = clamp(kt * 3); sc.tag.style.transform = `rotate(-3deg) scale(${0.6 + 0.4 * kt})`; }
       if (t >= sc.start && t < sc.end) {
-        const e = INFO[sc.type][2];
+        const e = ((sc.data && sc.data.tag) || INFO[sc.type] || ['', '', ''])[2];
         if (lastEmo !== sc.id) { lastEmo = sc.id; emo.textContent = e; }
         const ke = p(lt, 0.2, 0.4, ease.elastic); emo.style.transform = `scale(${ke}) rotate(${10 + Math.sin(t * 3) * 6}deg)`;
-        emo.style.opacity = sc.type === 'hook' || sc.type === 'outro' ? 0 : 1;
+        emo.style.opacity = ['hook', 'outro', 'bhook', 'bout'].includes(sc.type) ? 0 : 1;
       }
     },
     after(t) {

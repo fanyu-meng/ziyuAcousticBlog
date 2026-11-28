@@ -11,7 +11,7 @@ PICK = 2.1
 
 K = lambda widget, title, **d: dict(widget=widget, title=title, **d)
 SCENES = [
-    dict(id='intro', type='full', data=dict(widget='hook', title='洗澡时唱歌<br><em>为什么更好听？</em>',
+    dict(id='intro', type='full', data=dict(widget='hook', tcue='t0', title='洗澡时唱歌<br><em>为什么更好听？</em>',
                                             chips=[('四道题，考考你的耳朵', 'rule'), ('耳机音量先调小', 'ear')]), steps=[
         clip('b_bath', gap=0.15),
         say("[[q]]是不是一进浴室，就觉得自己唱得特别好听？"),
