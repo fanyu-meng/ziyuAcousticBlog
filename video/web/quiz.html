@@ -165,7 +165,7 @@ html,body{margin:0;background:#2a1466}
       const count = h('div', { class: 'rd-count' }), stamp = h('div', { class: 'rd-stamp', text: D.stamp || '' });
       const head = h('div', { class: 'rd-h' }, h('div', { class: 'rd-no', text: `第 ${D.no} 题` }), h('div', { class: 'rd-t', html: D.title + (D.sub ? `<small>${D.sub}</small>` : '') }));
       const cards = h('div', { class: 'rd-cards' }, A.card, B.card);
-      const big = Array.from({ length: 20 }, () => h('i')), eqBig = choice && !D.video ? h('div', { class: 'rd-eqbig' }, ...big) : null;
+      const big = Array.from({ length: 20 }, () => h('i')), eqBig = choice && !D.video && sc.steps.some(x => x.kind === 'clip') ? h('div', { class: 'rd-eqbig' }, ...big) : null;
       const qEl = choice && D.q ? h('div', { class: 'rd-q', text: D.q }) : null;
       el.append(h('div', { class: 'rd' + (D.video || choice ? ' has-video' : '') + (choice ? ' choice' : '') }, head, video, eqBig, qEl, cards, count, D.stamp ? stamp : null));
       const sideOf = n => (n === D.a.clip ? A : n === D.b.clip ? B : null);

@@ -23,8 +23,8 @@
   // data: {title, sub, chips:[[text, cue]], clip, vtag, ratio:'16/9', tcue}
   W.hook = (el, sc) => {
     const D = sc.data || {};
-    const img = h('img'), tag = D.vtag ? h('div', { class: 'w4-vtag', text: D.vtag }) : null;
-    const frame = D.clip ? h('div', { class: 'w4-hook-v', style: { aspectRatio: D.ratio || '16/9' } }, img, tag) : null;
+    const img = D.img ? h('img', { src: D.img }) : h('img'), tag = D.vtag ? h('div', { class: 'w4-vtag', text: D.vtag }) : null;
+    const frame = D.clip || D.img ? h('div', { class: 'w4-hook-v', style: { aspectRatio: D.ratio || '16/9' } }, img, tag) : null;
     const title = h('div', { class: 'w4-hook-t', html: D.title || '' });
     const sub = D.sub ? h('div', { class: 'w4-hook-s', html: D.sub }) : null;
     const chips = (D.chips || []).map(c => h('div', { class: 'w4-chip', text: c[0] }));
@@ -33,6 +33,8 @@
     return (lt, t) => {
       if (frame) {
         pop(frame, p(lt, 0, 0.45, ease.back), 0.85);
+      }
+      if (frame && D.clip) {
         const c = E.TL.clips[D.clip];
         const u = own ? clamp(t - own.start, 0, own.end - own.start - 1 / 30) : 0;
         E.frame(img, c, Math.floor(u * E.TL.fps) + 1);
@@ -52,7 +54,7 @@
         const e = h('div', { class: 'w4-mark' + (m.dot ? ' dot' : ''), style: { left: m.x + '%', top: m.y + '%' } }, m.text ? h('span', { text: m.text }) : null);
         return { e, m };
       });
-      const box = h('div', { class: 'w4-fig-img' }, h('img', { src: it.src }), ...marks.map(x => x.e));
+      const box = h('div', { class: 'w4-fig-img' }, h('img', it.src ? { src: it.src } : {}), ...marks.map(x => x.e));
       const cap = h('div', { class: 'w4-fig-cap' }, it.tag ? h('b', { text: it.tag }) : null, it.cap ? h('span', { text: it.cap }) : null);
       const fig = h('div', { class: 'w4-fig' }, box, cap);
       return { fig, marks, it };
@@ -77,6 +79,7 @@
         if (one) { x.fig.style.opacity = i === cur ? k : i === cur - 1 ? 1 - p(lt, at[cur] - 0.2, 0.3) : 0; x.fig.style.transform = `scale(${0.96 + 0.04 * k})`; }
         else { show(x.fig, k, 30); x.fig.classList.toggle('cur', i === cur && items.length > 1); }
         x.marks.forEach(({ e, m }) => pop(e, p(lt, cue(sc, m.cue, at[i] + 0.5), 0.3, ease.back), 0.3));
+        if (x.it.seq) { const q = E.TL.seqs[x.it.seq]; E.frame(x.fig.querySelector('img'), q, 1 + Math.floor(Math.max(0, lt - at[i]) * q.fps) % q.frames); }
       });
     };
   };
