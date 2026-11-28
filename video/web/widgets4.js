@@ -222,10 +222,10 @@
     };
   };
   // ---------- 一步步算出来 ----------
-  // data: {img, cap, lines:[{t, cue, big}]}  each line appears at its cue; big lines are the results
+  // data: {img, imgh (max image height, px), cap, lines:[{t, cue, big}]}  each line appears at its cue; big lines are the results
   W.calc = (el, sc) => {
     const D = sc.data;
-    const fig = D.img ? h('div', { class: 'w4-calc-f' }, h('img', { src: D.img }), D.cap ? h('span', { text: D.cap }) : null) : null;
+    const fig = D.img ? h('div', { class: 'w4-calc-f' }, h('img', { src: D.img, style: D.imgh ? { maxHeight: D.imgh + 'px' } : {} }), D.cap ? h('span', { text: D.cap }) : null) : null;
     const rows = D.lines.map(l => h('div', { class: 'w4-calc-l' + (l.big ? ' big' : '') }, l.t));
     el.append(h('div', { class: 'w4-calc' }, fig, h('div', { class: 'w4-calc-ls' }, ...rows)));
     return lt => {

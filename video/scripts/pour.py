@@ -21,11 +21,11 @@ def glasses():
     out = f'{CACHE}/pour_glasses.png'
     if os.path.exists(out):
         return 'file://' + out
-    W, H = 1000, 520
+    W, H = 1000, 540
     im = Image.new('RGB', (W, H), 'white')
     d = ImageDraw.Draw(im)
-    f1 = ImageFont.truetype(FONT, 40)
-    f2 = ImageFont.truetype(FONT, 34)
+    f1 = ImageFont.truetype(FONT, 60)
+    f2 = ImageFont.truetype(FONT, 46)
     ink, water, acc = (26, 18, 60), (110, 180, 255), (255, 90, 120)
     for i, (lev, lab, res) in enumerate(((0.22, '空气柱长', '音低'), (0.82, '空气柱短', '音高'))):
         x0 = 120 + i * 480
