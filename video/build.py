@@ -146,7 +146,7 @@ def main():
         g = 10 ** ((-16.0 - float(m[-1])) / 20)
         mix = mix * g
         over = np.abs(mix) > 0.6                 # ceiling about -1.5 dBFS, leaving headroom for lossy encoding
-        mix[over] = np.sign(mix[over]) * (0.6 + 0.24 * np.tanh((np.abs(mix[over]) - 0.6) / 0.24))
+        mix[over] = np.sign(mix[over]) * (0.6 + 0.2 * np.tanh((np.abs(mix[over]) - 0.6) / 0.2))   # ceiling about -1.9 dBFS: AAC overshoot stays under -1.2
         core.write_wav(f'{out}/audio.wav', mix)
     venv = core.envelope(voice[:int(total * SR)])
 

@@ -18,7 +18,9 @@ BAD = re.compile(r'(https?|www\.|\.com|\.cn|\.org|\.net|\.io|[A-Za-z0-9._-]+@[A-
 
 
 def ocr(path):
-    r = subprocess.run(['tesseract', path, '-', '-l', 'chi_sim+eng', '--psm', '11'], capture_output=True, text=True)
+    # one thread: tesseract's OpenMP threads can stall for minutes per frame when the machine is busy
+    r = subprocess.run(['tesseract', path, '-', '-l', 'chi_sim+eng', '--psm', '11'], capture_output=True, text=True,
+                       env=dict(os.environ, OMP_THREAD_LIMIT='1'))
     return re.sub(r'\s+', ' ', r.stdout)
 
 

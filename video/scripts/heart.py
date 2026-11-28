@@ -33,7 +33,7 @@ FIGS = {
     'old': wm(A1, 3, 317, 312, fill=(30, 30, 30), cap='用耳朵听诊'),
     'bowel': figure(A1, 7, cap='四种肠鸣音：单爆破、连续爆破、连续不规律、谐波'),
     'heart': wm(A2, 3, 915, 810, fill=(255, 255, 255), cap='心脏切面图（作者爱人手绘）'),
-    'pcg2': wm(A2, 2, 642, 119, fill=(200, 200, 200), cap='心音图：S1 和 S2'),
+    'pcg2': figure(A2, 2, crop=(0, 0, 500, 119), cap='心音图：S1 和 S2'),          # watermark sits at the right end: cropped
 }
 for k, zh, en, a, f, (w, h) in ABN:
     FIGS['f_' + k] = wm(A2, f, w, h, cap=f'{zh}（{en}）')
@@ -50,7 +50,7 @@ def beep():
 H = lambda src, d=None, **o: dict(src=src, ss=0.0, d=d, fin=0.01, fout=0.3, limit=0.4, **o)   # heart sounds are impulsive
 CLIPS = {
     'h_beat': H(au(A1, 1), 5.6),
-    'h_beep': dict(gen=beep),
+    'h_beep': dict(gen=beep, db=-5.0),            # mostly silence between beeps: the level measure overrates the gain
     'h_gut': H(au(A1, 2), 5.4),
     'h_gut15': H(au(A1, 3), 14.4),
 }
