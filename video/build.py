@@ -38,6 +38,9 @@ def main():
     for names in pairs.values():
         for n in names:                          # every clip to the same loudness, so A and B never differ in level
             raw[n] = core.gain(raw[n], mod.CLIP_DB + mod.CLIPS[n].get('db', 0) - core.active_rms_db(raw[n]))
+            lim = mod.CLIPS[n].get('limit')      # impulsive clips (squeaks, bursts): soft-limit the peaks, keep the level
+            if lim:
+                raw[n] = (lim * np.tanh(raw[n] / lim)).astype('f4')
     for name, c in mod.CLIPS.items():
         info = dict(d=c['d'], bands=core.bands(raw[name]), frames=0, dir='', parts=c.get('parts'))
         v = c.get('video')
