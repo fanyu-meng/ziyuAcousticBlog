@@ -286,7 +286,7 @@ html,body{margin:0;background:#2a1466}
       const hint = document.getElementById('hint'); let txt = '';
       if (!E.sayAt(t)) for (const sc of E.TL.scenes) if (t >= sc.start && t < sc.end) {
         const st = E.stepAt(sc, t);
-        if (st && st.kind === 'clip' && sc.type === 'round') txt = sc.data.mode === 'choice' ? '♪ 仔细听' : '♪ 仔细听 ' + (st.clip === sc.data.a.clip ? 'A' : 'B');
+        if (st && st.kind === 'clip' && sc.type === 'round') txt = sc.data.mode === 'choice' ? '♪ 仔细听' : '♪ 仔细听 ' + (st.clip === sc.data.a.clip ? 'A' : st.clip === sc.data.b.clip ? 'B' : '');
         else if (st && st.kind === 'clip') txt = '♪';
         else if (st && st.kind === 'wait') txt = '选好了吗？';
       }
