@@ -73,6 +73,22 @@ def figure(aid, n, crop=None, paint=(), cap='', fill=None):
     return dict(url='file://' + out, path=out, cap=cap, size=Image.open(out).size)
 
 
+def inpaint(aid, n, box, thr=150, cap=''):
+    """Figure n with the light watermark pixels inside box filled in from their surroundings (for photos and
+    renders, where a flat painted box would show)."""
+    import cv2
+    out = f'{CACHE}/fig_{aid}_{n}_inp_' + '_'.join(map(str, box)) + '.png'
+    if not os.path.exists(out):
+        im = np.asarray(Image.open(SITE + article(aid)['figs'][n - 1]).convert('RGB')).copy()
+        x0, y0, x1, y1 = box
+        m = np.zeros(im.shape[:2], np.uint8)
+        m[y0:y1, x0:x1] = (im[y0:y1, x0:x1].min(axis=2) > thr).astype(np.uint8) * 255
+        m = cv2.dilate(m, np.ones((5, 5), np.uint8), iterations=2)
+        r = cv2.inpaint(cv2.cvtColor(im, cv2.COLOR_RGB2BGR), m, 7, cv2.INPAINT_TELEA)
+        Image.fromarray(cv2.cvtColor(r, cv2.COLOR_BGR2RGB)).save(out)
+    return dict(url='file://' + out, path=out, cap=cap, size=Image.open(out).size)
+
+
 def largefile(aid, name):
     """The article's archived video or audio (largeFiles), downloaded once into the cache."""
     out = f'{CACHE}/lf_{aid}_{name}'
